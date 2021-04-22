@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-
+#include <algorithm>
+#include <regex>
 
 class ServerSettings {
 private:
@@ -35,6 +36,8 @@ public:
 
     // the method should get a variable that points to the beginning of the "server" block
     void parse_config(std::ifstream config_file);
+
+    std::string get_root(std::string url);
 };
 
 class MainServerSettings {

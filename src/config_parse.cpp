@@ -29,7 +29,7 @@ void ServerSettings::add_prefix_match_urls(std::string url, std::string root) {
 
 std::string ServerSettings::get_root(std::string url) {
     for (auto exact_match_url : exact_match_urls) {
-        if (exact_match_url.case_sensitive) {
+        if (!exact_match_url.case_sensitive) {
             std::transform(url.begin(), url.end(), 
                 url.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
         }
@@ -39,7 +39,7 @@ std::string ServerSettings::get_root(std::string url) {
     }
 
     for (auto preferential_match_url : preferential_prefix_urls) {
-        if (preferential_match_url.case_sensitive) {
+        if (!preferential_match_url.case_sensitive) {
             std::transform(url.begin(), url.end(), 
                 url.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
         }
@@ -49,7 +49,7 @@ std::string ServerSettings::get_root(std::string url) {
     }
 
     for (auto regex_match_url : regex_match_urls) {
-        if (regex_match_url.case_sensitive) {
+        if (!regex_match_url.case_sensitive) {
             std::transform(url.begin(), url.end(), 
                 url.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
         }
@@ -60,7 +60,7 @@ std::string ServerSettings::get_root(std::string url) {
     }
 
     for (auto prefix_match_url : prefix_match_urls) {
-        if (prefix_match_url.case_sensitive) {
+        if (!prefix_match_url.case_sensitive) {
             std::transform(url.begin(), url.end(), 
                 url.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
         }

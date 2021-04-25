@@ -25,6 +25,8 @@ std::string HttpHeader::getValue() const {
     return std::string(value_);
 }
 
+HttpBase::HttpBase() : http_version_major_(1), http_version_minor_(0) {}
+
 HttpBase::HttpBase(std::vector<HttpHeader> &headers, int major, int minor)
         : http_headers_(headers), http_version_major_(major), http_version_minor_(minor) {}
 
@@ -64,3 +66,9 @@ std::string HttpRequest::getMethod() const {
 void HttpRequest::setMethod(const std::string &method) {
     http_method_ = method;
 }
+
+HttpRequest::HttpRequest(std::string &method, std::string &data, std::vector<HttpHeader> &headers, int major, int minor)
+        : http_method_(method), http_data_(data), HttpBase(headers, major, minor) {}
+
+//HttpRequest::HttpRequest(const char *file_as_string);
+//HttpRequest::HttpRequest(const int fd);

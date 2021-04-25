@@ -35,7 +35,8 @@ class HttpBase {
 
 class HttpRequest : public HttpBase {
  public:
-    std::string getMethod();
+    std::string &getMethod();
+    std::string getMethod() const;
     void setMethod(const std::string &method);
  private:
     std::string http_method_;

@@ -52,3 +52,15 @@ int &HttpBase::getMajor() {
 int HttpBase::getMajor() const {
     return http_version_major_;
 }
+
+std::string &HttpRequest::getMethod() {
+    return http_method_;
+}
+
+std::string HttpRequest::getMethod() const {
+    return std::string(http_method_);
+}
+
+void HttpRequest::setMethod(const std::string &method) {
+    http_method_ = method;
+}

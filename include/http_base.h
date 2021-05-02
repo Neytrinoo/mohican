@@ -15,8 +15,14 @@ class HttpBase {
     int get_minor() const;
     int &get_major();
     int get_major() const;
+
+ protected:
+    int read_line(const int fd, char *buffer);
+
  protected:
     int version_major_;
     int version_minor_;
     std::vector<HttpHeader> request_headers_;
+    static const int buf_size_ = 4096;
+    static const int read_size_ = 256;
 };

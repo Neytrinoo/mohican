@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <cstring>
 
 #include <http_exceptions.h>
@@ -82,20 +81,5 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &other) {
     return *this;
 }
 
-int HttpRequest::read_line(const int fd, char *buffer) {
-    int i = 0;
-    while (i < buf_size_) {
-        char c;
-        int r = read(fd, &c, sizeof c);
-        if (r <= 0)
-            return -1;
-        if (c == '\n')
-            break;
-        buffer[i++] = c;
-    }
-    if (i > 0 && buffer[i - 1] == '\r')
-        i--;
-    buffer[i] = '\0';
-    return i;
-}
+
 

@@ -7,7 +7,7 @@
 class HttpBase {
  public:
     HttpBase();
-    HttpBase(std::vector<HttpHeader> &headers, int major = 0, int minor = 0);
+    HttpBase(const std::vector<HttpHeader> &headers, int major = 0, int minor = 0);
     ~HttpBase() = default;
     void set_version(int major, int minor);
     void set_headers(std::vector<HttpHeader> headers);

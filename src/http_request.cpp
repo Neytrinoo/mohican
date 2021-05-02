@@ -68,6 +68,20 @@ HttpRequest::HttpRequest(const int fd) {
     }
 }
 
+HttpRequest::HttpRequest(const HttpRequest &other)
+        : HttpBase(other.request_headers_, other.version_major_, other.version_minor_),
+          method_(other.method_),
+          url_(other.url_) {}
+
+HttpRequest &HttpRequest::operator=(const HttpRequest &other) {
+    request_headers_ = other.request_headers_;
+    version_minor_ = other.version_minor_;
+    version_major_ = other.version_major_;
+    method_ = other.method_;
+    url_ = other.url_;
+    return *this;
+}
+
 int HttpRequest::read_line(const int fd, char *buffer) {
     int i = 0;
     while (i < buf_size_) {

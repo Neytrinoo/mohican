@@ -9,9 +9,16 @@ class HttpRequest : public HttpBase {
  public:
     HttpRequest() = default;
     HttpRequest(const int fd);
+    explicit HttpRequest(const HttpRequest &other);
+    HttpRequest &operator=(const HttpRequest &other);
+    ~HttpRequest() = default;
+
     std::string &get_method();
     std::string get_method() const;
+
     void set_method(const std::string &method);
+
+ private:
     int read_line(const int fd, char *buffer);
  private:
     std::string method_;

@@ -2,8 +2,6 @@
 
 #include "http_base.h"
 
-HttpBase::HttpBase() : version_major_(1), version_minor_(0) {}
-
 HttpBase::HttpBase(const std::vector<HttpHeader> &headers, int major, int minor)
         : headers_(headers), version_major_(major), version_minor_(minor) {}
 

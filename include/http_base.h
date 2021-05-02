@@ -6,11 +6,15 @@
 
 class HttpBase {
  public:
-    HttpBase();
+    HttpBase() = default;
     HttpBase(const std::vector<HttpHeader> &headers, int major = 0, int minor = 0);
+    explicit HttpBase(const HttpBase &other) = default;
+    HttpBase &operator=(const HttpBase &other) = default;
     ~HttpBase() = default;
+
     void set_version(int major, int minor);
     void set_headers(std::vector<HttpHeader> headers);
+
     int &get_minor();
     int get_minor() const;
     int &get_major();

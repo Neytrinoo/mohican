@@ -66,20 +66,3 @@ HttpRequest::HttpRequest(const int fd) {
         headers_.push_back(HttpHeader(header_name, header_value));
     }
 }
-
-HttpRequest::HttpRequest(const HttpRequest &other)
-        : HttpBase(other.headers_, other.version_major_, other.version_minor_),
-          method_(other.method_),
-          url_(other.url_) {}
-
-HttpRequest &HttpRequest::operator=(const HttpRequest &other) {
-    headers_ = other.headers_;
-    version_minor_ = other.version_minor_;
-    version_major_ = other.version_major_;
-    method_ = other.method_;
-    url_ = other.url_;
-    return *this;
-}
-
-
-

@@ -8,7 +8,7 @@
 class HttpRequest : public HttpBase {
  public:
     HttpRequest() = default;
-    HttpRequest(const int fd);
+    HttpRequest(const int in_fd);
     explicit HttpRequest(const HttpRequest &other) = default;
     HttpRequest &operator=(const HttpRequest &other) = default;
     ~HttpRequest() = default;

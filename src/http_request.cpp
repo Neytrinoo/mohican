@@ -1,4 +1,5 @@
 #include <cstring>
+#include <sstream>
 
 #include <http_exceptions.h>
 #include "http_request.h"
@@ -15,9 +16,9 @@ void HttpRequest::set_method(const std::string &method) {
     method_ = method;
 }
 
-HttpRequest::HttpRequest(const int fd) {
+HttpRequest::HttpRequest(const int in_fd) {
     char buffer[buf_size_];
-    int buffer_len = read_line(fd, buffer);
+    int buffer_len = read_line(in_fd, buffer);
     if (buffer_len == -1) {
         throw ReadException("Error while reading from file descriptor");
     }
@@ -46,11 +47,7 @@ HttpRequest::HttpRequest(const int fd) {
         throw ReadException("Error while reading from file descriptor");
     }
 
-    if (version_major_ != 1 || (version_minor_ != 0 && version_minor_ != 1)) {
-        throw ProtVersionException("Unsupported http version");
-    }
-
-    while ((buffer_len = read_line(fd, buffer)) > 0) {
+    while ((buffer_len = read_line(in_fd, buffer)) > 0) {
         char *header_name_begin = buffer;
         char *header_name_end = strchr(header_name_begin, ':');
         if (!header_name_end)

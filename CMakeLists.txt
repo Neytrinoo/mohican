@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(nginx_the_best_copy)
+project(mohican)
 
 include_directories(include)
 

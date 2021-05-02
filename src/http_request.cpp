@@ -2,7 +2,7 @@
 #include <cstring>
 
 #include <http_exceptions.h>
-#include "http_parse.h"
+#include "http_request.h"
 
 std::string &HttpRequest::get_method() {
     return method_;
@@ -84,3 +84,4 @@ int HttpRequest::read_line(const int fd, char *buffer) {
     buffer[i] = '\0';
     return i;
 }
+

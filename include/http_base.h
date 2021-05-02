@@ -16,7 +16,7 @@ class HttpBase {
     int &get_major();
     int get_major() const;
  protected:
-    int http_version_major_;
-    int http_version_minor_;
-    std::vector<HttpHeader> http_headers_;
+    int version_major_;
+    int version_minor_;
+    std::vector<HttpHeader> request_headers_;
 };

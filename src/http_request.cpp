@@ -43,11 +43,11 @@ HttpRequest::HttpRequest(const int fd) {
 
     char *protocol_begin = url_end + 1;
 
-    if (sscanf(protocol_begin, "HTTP/%d.%d", &http_version_major_, &http_version_minor_) != 2) {
+    if (sscanf(protocol_begin, "HTTP/%d.%d", &version_major_, &version_minor_) != 2) {
         throw ReadException("Error while reading from file descriptor");
     }
 
-    if (http_version_major_ != 1 || (http_version_minor_ != 0 && http_version_minor_ != 1)) {
+    if (version_major_ != 1 || (version_minor_ != 0 && version_minor_ != 1)) {
         throw ProtVersionException("Unsupported http version");
     }
 
@@ -64,7 +64,7 @@ HttpRequest::HttpRequest(const int fd) {
 
         std::string header_name = std::string(header_name_begin, header_name_end - header_name_begin);
         std::string header_value = std::string(header_value_begin, header_value_end - header_value_begin);
-        http_headers_.push_back(HttpHeader(header_name, header_value));
+        request_headers_.push_back(HttpHeader(header_name, header_value));
     }
 }
 

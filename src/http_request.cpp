@@ -63,17 +63,17 @@ HttpRequest::HttpRequest(const int fd) {
 
         std::string header_name = std::string(header_name_begin, header_name_end - header_name_begin);
         std::string header_value = std::string(header_value_begin, header_value_end - header_value_begin);
-        request_headers_.push_back(HttpHeader(header_name, header_value));
+        headers_.push_back(HttpHeader(header_name, header_value));
     }
 }
 
 HttpRequest::HttpRequest(const HttpRequest &other)
-        : HttpBase(other.request_headers_, other.version_major_, other.version_minor_),
+        : HttpBase(other.headers_, other.version_major_, other.version_minor_),
           method_(other.method_),
           url_(other.url_) {}
 
 HttpRequest &HttpRequest::operator=(const HttpRequest &other) {
-    request_headers_ = other.request_headers_;
+    headers_ = other.headers_;
     version_minor_ = other.version_minor_;
     version_major_ = other.version_major_;
     method_ = other.method_;

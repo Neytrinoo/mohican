@@ -5,7 +5,7 @@
 HttpBase::HttpBase() : version_major_(1), version_minor_(0) {}
 
 HttpBase::HttpBase(const std::vector<HttpHeader> &headers, int major, int minor)
-        : request_headers_(headers), version_major_(major), version_minor_(minor) {}
+        : headers_(headers), version_major_(major), version_minor_(minor) {}
 
 void HttpBase::set_version(int major, int minor) {
     version_major_ = major;
@@ -13,7 +13,7 @@ void HttpBase::set_version(int major, int minor) {
 }
 
 void HttpBase::set_headers(std::vector<HttpHeader> headers) {
-    request_headers_ = std::move(headers);
+    headers_ = std::move(headers);
 }
 
 int &HttpBase::get_minor() {

@@ -9,12 +9,12 @@ class HttpBase {
     HttpBase();
     HttpBase(std::vector<HttpHeader> &headers, int major = 1, int minor = 0);
     ~HttpBase() = default;
-    void setVersion(int major, int minor);
-    void setHeaders(std::vector<HttpHeader> headers);
-    int &getMinor();
-    int getMinor() const;
-    int &getMajor();
-    int getMajor() const;
+    void set_version(int major, int minor);
+    void set_headers(std::vector<HttpHeader> headers);
+    int &get_minor();
+    int get_minor() const;
+    int &get_major();
+    int get_major() const;
  protected:
     int http_version_major_;
     int http_version_minor_;

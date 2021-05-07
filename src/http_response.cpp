@@ -53,8 +53,17 @@ int HttpResponse::send_headers(int sock) {
     int symbols = 0;
     for (const auto &header: headers_) {
         std::string line = header.first + ": " + header.second;
-        symbols += write(sock, line.c_str(), line.size());
-        symbols += send_nl(sock);
+        int r;
+        r = write(sock, line.c_str(), line.size());
+        if (r < 0) {
+            return NOTOK;
+        }
+        symbols += r;
+        r = send_nl(sock);
+        if (r < 0) {
+            return NOTOK;
+        }
+        symbols += r;
     }
     return symbols;
 }

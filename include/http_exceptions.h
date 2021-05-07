@@ -1,9 +1,9 @@
 #include <exception>
 #include <string>
 
-class BaseException : public std::exception {
+class HttpBaseException : public std::exception {
  public:
-    BaseException(const std::string &msg) : msg_(std::move(msg)) {}
+    HttpBaseException(const std::string &msg) : msg_(std::move(msg)) {}
 
     const char *what() const noexcept override {
         return msg_.c_str();
@@ -13,17 +13,17 @@ class BaseException : public std::exception {
     std::string msg_;
 };
 
-class ReadException : public  BaseException {
+class ReadException : public  HttpBaseException {
  public:
-    ReadException(const std::string &msg) : BaseException(msg) {}
+    ReadException(const std::string &msg) : HttpBaseException(msg) {}
 };
 
-class DelimException : public BaseException {
+class DelimException : public HttpBaseException {
  public:
-    DelimException(const std::string &msg) : BaseException(msg) {}
+    DelimException(const std::string &msg) : HttpBaseException(msg) {}
 };
 
-class ProtVersionException : public BaseException {
+class ProtVersionException : public HttpBaseException {
  public:
-    ProtVersionException(const std::string &msg) : BaseException(msg) {}
+    ProtVersionException(const std::string &msg) : HttpBaseException(msg) {}
 };

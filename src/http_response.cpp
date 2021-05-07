@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-#include "handler_defines.h"
+#include "defines.h"
 #include "http_response.h"
 
 HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,
@@ -15,28 +15,28 @@ HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,
           filename_(filename),
           status_(status),
           message_(message),
-          file_fd(file_fd),
+          file_fd_(file_fd),
           method_(method) {}
 
 int HttpResponse::send(int sock) {
-    if (send_status(sock) < 0) {
-        return -1;
+    if (send_status(sock) != OK) {
+        return NOTOK;
     }
-    if (send_nl(sock) < 0) {
-        return -1;
+    if (send_nl(sock) != OK) {
+        return NOTOK;
     }
-    if (send_headers(sock) < 0) {
-        return -1;
+    if (send_headers(sock) != OK) {
+        return NOTOK;
     }
-    if (send_nl(sock) < 0) {
-        return -1;
+    if (send_nl(sock) != OK) {
+        return NOTOK;
     }
     if (method_ == GET) {
-        if (send_file(sock) < 0) {
-            return -1;
+        if (send_file(sock) != OK) {
+            return NOTOK;
         }
     }
-    return 0;
+    return OK;
 }
 
 int HttpResponse::send_nl(int sock) {
@@ -60,15 +60,19 @@ int HttpResponse::send_headers(int sock) {
 }
 
 int HttpResponse::send_file(int sock) {
+    if (file_fd_ == NOFILE) {
+        return NOFILE;
+    }
     char buffer[buf_size_];
     while (true) {
-        int r = read(file_fd, buffer, sizeof(buffer));
+        int r = read(file_fd_, buffer, sizeof(buffer));
         if (r < 0)
-            return -1;
+            return NOTOK;
         if (r == 0)
             break;
-        if (write(sock, buffer, r) == -1)
-            return -1;
+        if (write(sock, buffer, r) == NOTOK)
+            return NOTOK;
     }
-    return 0;
+    close(file_fd_);
+    return OK;
 }

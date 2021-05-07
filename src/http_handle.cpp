@@ -1,8 +1,9 @@
-#include <fcntl.h>
 #include <cstring>
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
-#include "handler_defines.h"
+#include "defines.h"
 #include "http_handle.h"
 #include "http_exceptions.h"
 
@@ -22,7 +23,7 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
     int file_fd = NOFILE;
     int method = 0;
 
-    if (request.get_method() == "GET") {
+    if (request.get_method() == "GET" || request.get_method() == "HEAD") {
         method = GET;
         if (request.get_url() == "/") {
             request.get_url() = "/index.html";
@@ -35,21 +36,28 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
             header = "connection";
             value = "close";
             headers[header] = value;
+        } else {
+            std::string content_type;
+            const char *ext = strrchr((root + request.get_url()).c_str(), '.');
+            if (ext) {
+                ext++;
+                if (strcmp(ext, "html") == 0)
+                    content_type = "text/html";
+                else if (strcmp(ext, "jpg") == 0)
+                    content_type = "image/jpg";
+                else if (strcmp(ext, "gif") == 0)
+                    content_type = "image/gif";
+            }
+            headers["content-type"] = content_type;
+            headers["content-length"] = std::to_string(file_stat.st_size);
+            status = 200;
+            message = "OK";
+            if (request.get_method() == "HEAD") {
+                close(file_fd);
+                file_fd = NOFILE;
+                method = HEAD;
+            }
         }
-
-        std::string content_type;
-        const char *ext = strrchr((root + request.get_url()).c_str(), '.');
-        if (ext) {
-            ext++;
-            if (strcmp(ext, "html") == 0)
-                content_type = "text/html";
-            else if (strcmp(ext, "jpg") == 0)
-                content_type = "image/jpg";
-            else if (strcmp(ext, "gif") == 0)
-                content_type = "image/gif";
-        }
-        headers["content-type"] = content_type;
-        headers["content-length"] = std::to_string(file_stat.st_size);
     }
 
     HttpResponse response(headers, request.get_major(), request.get_minor(),

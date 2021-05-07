@@ -15,6 +15,7 @@ class HttpRequest : public HttpBase {
 
     std::string &get_method();
     std::string get_method() const;
+    std::string &get_url();
 
     void set_method(const std::string &method);
 

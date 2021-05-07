@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include <http_exceptions.h>
+#include <algorithm>
 #include "http_request.h"
 
 std::string &HttpRequest::get_method() {
@@ -59,7 +60,21 @@ HttpRequest::HttpRequest(const int in_fd) {
         char *header_value_end = buffer + buffer_len;
 
         std::string header_name = std::string(header_name_begin, header_name_end - header_name_begin);
+        std::transform(header_name.begin(),
+                       header_name.end(),
+                       header_name.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
         std::string header_value = std::string(header_value_begin, header_value_end - header_value_begin);
-        headers_.push_back(HttpHeader(header_name, header_value));
+        std::transform(header_value.begin(),
+                       header_value.end(),
+                       header_value.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        headers_[header_name] = header_value;
     }
+    if (buffer_len < 0) {
+        throw ReadException("Error while reading body from file descriptor");
+    }
+}
+std::string &HttpRequest::get_url() {
+    return url_;
 }

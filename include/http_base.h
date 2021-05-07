@@ -1,24 +1,19 @@
 #pragma once
 
-#include <vector>
-
-#include "http_header.h"
+#include <string>
+#include <unordered_map>
 
 class HttpBase {
  public:
     HttpBase() = default;
-    HttpBase(const std::vector<HttpHeader> &headers, int major = 0, int minor = 0);
+    HttpBase(const std::unordered_map<std::string, std::string> &headers, int major = 0, int minor = 0);
     explicit HttpBase(const HttpBase &other) = default;
     HttpBase &operator=(const HttpBase &other) = default;
     ~HttpBase() = default;
 
-    void set_version(int major, int minor);
-    void set_headers(std::vector<HttpHeader> headers);
-
-    int &get_minor();
     int get_minor() const;
-    int &get_major();
     int get_major() const;
+    std::unordered_map<std::string, std::string> &get_headers();
 
  protected:
     int read_line(const int fd, char *buffer);
@@ -26,7 +21,7 @@ class HttpBase {
  protected:
     int version_major_ = -1;
     int version_minor_ = -1;
-    std::vector<HttpHeader> headers_;
+    std::unordered_map<std::string, std::string> headers_;
     static const int buf_size_ = 4096;
     static const int read_size_ = 256;
 };

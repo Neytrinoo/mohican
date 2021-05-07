@@ -54,9 +54,11 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
             message = "OK";
             if (request.get_method() == "HEAD") {
                 close(file_fd);
-                file_fd = NOFILE;
-                method = HEAD;
             }
+        }
+        if (request.get_method() == "HEAD") {
+            file_fd = NOFILE;
+            method = HEAD;
         }
     }
 

@@ -17,6 +17,10 @@ class HttpResponse : public HttpBase {
                  const std::string &message,
                  int file_fd,
                  int method);
+    HttpResponse(const HttpResponse &other) = default;
+    HttpResponse &operator=(const HttpResponse &other) = default;
+    HttpResponse(HttpResponse &&other) = default;
+    HttpResponse &operator=(HttpResponse &&other) = default;
 
     int send(int sock);
 

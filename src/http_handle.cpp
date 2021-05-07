@@ -7,9 +7,7 @@
 #include "http_handle.h"
 #include "http_exceptions.h"
 
-HttpResponse HttpHandler(const std::string &root, int sock) {
-    HttpRequest request(sock);
-
+HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
         throw ProtVersionException("Wrong protocol version");
     }
@@ -79,6 +77,8 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
             message = "OK";
         }
         file_fd = NOFILE;
+    } else if (request.get_method() == "PUT") {
+        method = PUT;
     }
 
     HttpResponse response(headers, request.get_major(), request.get_minor(),

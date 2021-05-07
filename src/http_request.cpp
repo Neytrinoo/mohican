@@ -69,6 +69,11 @@ HttpRequest::HttpRequest(const int in_fd) {
         throw ReadException("Error while reading body from file descriptor");
     }
 }
+
 std::string &HttpRequest::get_url() {
     return url_;
+}
+
+std::string HttpRequest::get_url() const {
+    return std::string(url_);
 }

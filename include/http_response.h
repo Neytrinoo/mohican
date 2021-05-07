@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 #include "http_base.h"
 #include "http_request.h"
@@ -9,8 +9,27 @@
 class HttpResponse : public HttpBase {
  public:
     HttpResponse() = default;
-    HttpResponse(const int fd, const HttpRequest &request);
+    HttpResponse(std::unordered_map<std::string, std::string> headers,
+                 int major,
+                 int minor,
+                 const std::string &filename,
+                 int status,
+                 const std::string &message,
+                 int file_fd,
+                 int method);
+
+    int send(int sock);
 
  private:
-    std::string body_;
+    int status_ = 0;
+    std::string message_;
+    std::string filename_;
+    int file_fd;
+    int method_;
+
+ private:
+    int send_nl(int sock);
+    int send_status(int sock);
+    int send_headers(int sock);
+    int send_file(int sock);
 };

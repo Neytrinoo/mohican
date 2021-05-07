@@ -30,7 +30,7 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
         }
         file_fd = open((root + request.get_url()).c_str(), O_RDONLY);
         struct stat file_stat;
-        if (file_fd == -1 || fstat(file_fd, &file_stat) == -1) {
+        if (file_fd == NOTOK || fstat(file_fd, &file_stat) == NOTOK) {
             status = 404;
             message = "not found";
             header = "connection";

@@ -31,7 +31,7 @@ int HttpResponse::send(int sock) {
     if (send_nl(sock) != OK) {
         return NOTOK;
     }
-    if (method_ == GET) {
+    if (method_ == GET && status_ != 404) {
         if (send_file(sock) != OK) {
             return NOTOK;
         }

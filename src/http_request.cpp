@@ -1,9 +1,9 @@
 #include <cstring>
 #include <sstream>
 
-#include <http_exceptions.h>
-#include <algorithm>
+#include "http_exceptions.h"
 #include "http_request.h"
+#include "string_to_lower.h"
 
 std::string &HttpRequest::get_method() {
     return method_;
@@ -60,15 +60,9 @@ HttpRequest::HttpRequest(const int in_fd) {
         char *header_value_end = buffer + buffer_len;
 
         std::string header_name = std::string(header_name_begin, header_name_end - header_name_begin);
-        std::transform(header_name.begin(),
-                       header_name.end(),
-                       header_name.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+        string_to_lower(header_name);
         std::string header_value = std::string(header_value_begin, header_value_end - header_value_begin);
-        std::transform(header_value.begin(),
-                       header_value.end(),
-                       header_value.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+        string_to_lower(header_value);
         headers_[header_name] = header_value;
     }
     if (buffer_len < 0) {

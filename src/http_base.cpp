@@ -2,8 +2,8 @@
 
 #include "http_base.h"
 
-HttpBase::HttpBase(const std::vector<HttpHeader> &headers, int major, int minor)
-        : old_headers_(headers), version_major_(major), version_minor_(minor) {}
+HttpBase::HttpBase(const std::unordered_map<std::string, std::string> &headers, int major, int minor)
+        : headers_(headers), version_major_(major), version_minor_(minor) {}
 
 int HttpBase::get_minor() const {
     return version_minor_;

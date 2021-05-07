@@ -60,6 +60,25 @@ HttpResponse HttpHandler(const std::string &root, int sock) {
             file_fd = NOFILE;
             method = HEAD;
         }
+    } else if (request.get_method() == "DELETE") {
+        method = DELETE;
+        if (request.get_url() == "/") {
+            request.get_url() = "/index.html";
+        }
+        file_fd = open((root + request.get_url()).c_str(), O_RDONLY);
+        if (file_fd == NOTOK) {
+            status = 204;
+            message = "no content";
+            header = "connection";
+            value = "close";
+            headers[header] = value;
+        } else {
+            close(file_fd);
+            remove((root + request.get_url()).c_str());
+            status = 200;
+            message = "OK";
+        }
+        file_fd = NOFILE;
     }
 
     HttpResponse response(headers, request.get_major(), request.get_minor(),

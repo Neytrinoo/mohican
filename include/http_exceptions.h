@@ -27,3 +27,8 @@ class ProtVersionException : public HttpBaseException {
  public:
     ProtVersionException(const std::string &msg) : HttpBaseException(msg) {}
 };
+
+class WriteException : public HttpBaseException {
+ public:
+    WriteException(const std::string &msg) : HttpBaseException(msg) {}
+};

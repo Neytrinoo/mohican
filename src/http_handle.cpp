@@ -77,8 +77,36 @@ HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
             message = "OK";
         }
         file_fd = NOFILE;
-    } else if (request.get_method() == "PUT") {
-        method = PUT;
+    } else if (request.get_method() == "PUT" || request.get_method() == "POST") {
+        if (request.get_method() == "PUT") {
+            method = PUT;
+        } else {
+            method = POST;
+        }
+        std::string filename = root + request.get_url();
+        if (access(filename.c_str(), F_OK) == OK) {
+            status = 200;
+            message = "OK";
+        } else {
+            status = 201;
+            message = "Created";
+        }
+        header = "content-location";
+        value = request.get_url();
+        headers[header] = value;
+        file_fd = open(filename.c_str(), O_WRONLY);
+        char buffer[BUFSIZE];
+        while (true) {
+            int r = read(request.get_body(), buffer, sizeof(buffer));
+            if (r < 0)
+                throw ReadException("Cannot read body");
+            if (r == 0)
+                break;
+            if (write(file_fd, buffer, r) == NOTOK)
+                throw WriteException("Cannot write file");
+        }
+        close(file_fd);
+        file_fd = NOFILE;
     }
 
     HttpResponse response(headers, request.get_major(), request.get_minor(),

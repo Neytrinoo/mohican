@@ -8,3 +8,4 @@
 #define POST 3
 #define PUT 4
 #define DELETE 5
+#define BUFSIZE 4096

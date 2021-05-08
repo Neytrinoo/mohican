@@ -94,7 +94,7 @@ HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
         header = "content-location";
         value = request.get_url();
         headers[header] = value;
-        file_fd = open(filename.c_str(), O_WRONLY);
+        file_fd = open(filename.c_str(), O_CREAT | O_RDWR, COPYMODE);
         char buffer[BUFSIZE];
         while (true) {
             int r = read(request.get_body(), buffer, sizeof(buffer));
@@ -102,15 +102,13 @@ HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
                 throw ReadException("Cannot read body");
             if (r == 0)
                 break;
-            if (write(file_fd, buffer, r) == NOTOK)
+            if (write(file_fd, buffer, r) < 0)
                 throw WriteException("Cannot write file");
         }
         close(file_fd);
         file_fd = NOFILE;
     }
 
-    HttpResponse response(headers, request.get_major(), request.get_minor(),
-                          (root + request.get_url()), status, message, file_fd, method);
-
-    return response;
+    return HttpResponse(headers, request.get_major(), request.get_minor(),
+                        (root + request.get_url()), status, message, file_fd, method);
 }

@@ -9,3 +9,4 @@
 #define PUT 4
 #define DELETE 5
 #define BUFSIZE 4096
+#define COPYMODE 0644

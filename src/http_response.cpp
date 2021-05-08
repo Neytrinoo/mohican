@@ -18,16 +18,16 @@ HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,
           method_(method) {}
 
 int HttpResponse::send(int sock) {
-    if (send_status(sock) != OK) {
+    if (send_status(sock) < 0) {
         return NOTOK;
     }
-    if (send_nl(sock) != OK) {
+    if (send_nl(sock) < 0) {
         return NOTOK;
     }
-    if (send_headers(sock) != OK) {
+    if (send_headers(sock) < 0) {
         return NOTOK;
     }
-    if (send_nl(sock) != OK) {
+    if (send_nl(sock) < 0) {
         return NOTOK;
     }
     if (method_ == GET && status_ != 404) {
@@ -44,7 +44,7 @@ int HttpResponse::send_nl(int sock) {
 
 int HttpResponse::send_status(int sock) {
     std::string line = "HTTP/" + std::to_string(get_major()) + "." +
-            std::to_string(get_minor()) + " " + std::to_string(status_) + message_;
+            std::to_string(get_minor()) + " " + std::to_string(status_) + " " + message_;
     return write(sock, line.c_str(), line.size());
 }
 

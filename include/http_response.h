@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "defines.h"
 #include "http_base.h"
 #include "http_request.h"
 

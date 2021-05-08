@@ -1,6 +1,5 @@
 #include <unistd.h>
 
-#include "defines.h"
 #include "http_response.h"
 
 HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,

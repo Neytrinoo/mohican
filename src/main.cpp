@@ -1,6 +1,7 @@
-#include "main_server_settings.h"
+#include "mohican_server.h"
 
 
 int main() {
-    MainServerSettings server();
+    MohicanServer server;
+    server.server_start();
 }

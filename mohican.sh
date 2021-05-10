@@ -4,10 +4,10 @@
 ### END INIT INFO
 
 
-export MOHICANS_HOME=/home/andrey/'Рабочий стол'/mohican
+export MOHICANS_HOME=~/mohican
 export SERVER_NAME=mohican
 SERVER_STATUS="off"
-export PID_FILE=/home/andrey/'Рабочий стол'/mohican/pid_file.txt
+export PID_FILE=~/mohican/pid_file.txt
 export DEFAULT_PATH_TO_CONFIG=.mohican.conf
 
 
@@ -22,7 +22,7 @@ start() {
 		exit 1
 		else
 	echo "Starting $SERVER_NAME Server..."
-	."$MOHICANS_HOME"/mohican.out
+	"$MOHICANS_HOME"/mohican.out
 	SERVER_STATUS="on"
 		exit 0
 	fi	

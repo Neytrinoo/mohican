@@ -71,8 +71,6 @@ int MohicanServer::add_work_processes() {
         }
     }
 
-    fill_pid_file();
-
     return 0;
 }
 
@@ -142,6 +140,10 @@ int MohicanServer::start_balancing(int *number_process) {
 
 int MohicanServer::server_start() {
     if (daemonize() != 0) {
+        return -1;
+    }
+
+    if (fill_pid_file() == -1) {
         return -1;
     }
 

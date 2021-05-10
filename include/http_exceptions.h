@@ -32,3 +32,8 @@ class WriteException : public HttpBaseException {
  public:
     WriteException(const std::string &msg) : HttpBaseException(msg) {}
 };
+
+class MethodException : public  HttpBaseException {
+public:
+    MethodException(const std::string &msg) : HttpBaseException(msg) {}
+};

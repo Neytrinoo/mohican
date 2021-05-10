@@ -7,80 +7,19 @@ HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,
                            int minor,
                            const std::string &filename,
                            int status,
-                           const std::string &message,
-                           int file_fd,
-                           int method)
+                           const std::string &message)
         : HttpBase(headers, major, minor),
           filename_(filename),
           status_(status),
-          message_(message),
-          file_fd_(file_fd),
-          method_(method) {}
+          message_(message) {}
 
-int HttpResponse::send(int sock) {
-    if (send_status(sock) < 0) {
-        return NOTOK;
-    }
-    if (send_nl(sock) < 0) {
-        return NOTOK;
-    }
-    if (send_headers(sock) < 0) {
-        return NOTOK;
-    }
-    if (send_nl(sock) < 0) {
-        return NOTOK;
-    }
-    if (method_ == GET && status_ != 404) {
-        if (send_file(sock) != OK) {
-            return NOTOK;
-        }
-    }
-    return OK;
-}
-
-int HttpResponse::send_nl(int sock) {
-    return write(sock, "\n", 1);
-}
-
-int HttpResponse::send_status(int sock) {
-    std::string line = "HTTP/" + std::to_string(get_major()) + "." +
-            std::to_string(get_minor()) + " " + std::to_string(status_) + " " + message_;
-    return write(sock, line.c_str(), line.size());
-}
-
-int HttpResponse::send_headers(int sock) {
-    int symbols = 0;
+std::string HttpResponse::get_string() {
+    std::string str;
+    str += "HTTP/" + std::to_string(get_major()) + "." +
+            std::to_string(get_minor()) + " " + std::to_string(status_) + " " + message_ + "\n";
     for (const auto &header: headers_) {
-        std::string line = header.first + ": " + header.second;
-        int r;
-        r = write(sock, line.c_str(), line.size());
-        if (r < 0) {
-            return NOTOK;
-        }
-        symbols += r;
-        r = send_nl(sock);
-        if (r < 0) {
-            return NOTOK;
-        }
-        symbols += r;
+        str += header.first + ": " + header.second + "\n";
     }
-    return symbols;
-}
-
-int HttpResponse::send_file(int sock) {
-    if (file_fd_ == NOFILE) {
-        return NOFILE;
-    }
-    char buffer[buf_size_];
-    while (true) {
-        int r = read(file_fd_, buffer, sizeof(buffer));
-        if (r < 0)
-            return NOTOK;
-        if (r == 0)
-            break;
-        if (write(sock, buffer, r) == NOTOK)
-            return NOTOK;
-    }
-    close(file_fd_);
-    return OK;
+    str += "\n";
+    return str;
 }

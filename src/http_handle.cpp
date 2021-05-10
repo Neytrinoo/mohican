@@ -62,6 +62,5 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
         throw MethodException("Wrong method");
     }
 
-    return HttpResponse(headers, request.get_major(), request.get_minor(),
-                        (root + request.get_url()), status, message);
+    return HttpResponse(headers, request.get_major(), request.get_minor(), status, message);
 }

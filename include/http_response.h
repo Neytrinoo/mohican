@@ -5,7 +5,6 @@
 
 #include "defines.h"
 #include "http_base.h"
-#include "http_request.h"
 
 class HttpResponse : public HttpBase {
  public:
@@ -13,7 +12,6 @@ class HttpResponse : public HttpBase {
     HttpResponse(std::unordered_map<std::string, std::string> headers,
                  int major,
                  int minor,
-                 const std::string &filename,
                  int status,
                  const std::string &message);
     HttpResponse(const HttpResponse &other) = default;

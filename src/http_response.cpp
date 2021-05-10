@@ -5,11 +5,9 @@
 HttpResponse::HttpResponse(std::unordered_map<std::string, std::string> headers,
                            int major,
                            int minor,
-                           const std::string &filename,
                            int status,
                            const std::string &message)
         : HttpBase(headers, major, minor),
-          filename_(filename),
           status_(status),
           message_(message) {}
 

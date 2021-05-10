@@ -26,6 +26,4 @@ class HttpResponse : public HttpBase {
  private:
     int status_ = 0;
     std::string message_;
-    std::string filename_;
-    int method_;
 };

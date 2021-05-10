@@ -2,5 +2,5 @@
 
 
 int main() {
-    MainServerSettings server("../src/config.conf");
+    MainServerSettings server();
 }

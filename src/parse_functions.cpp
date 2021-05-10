@@ -239,7 +239,7 @@ void parse_config(MainServerSettings &main_server) {
     while (state != S_END && state != S_ERR) {
         pos_before = pos;
         if (is_server_adding) {
-            lexem = static_cast<lexem_t>(get_lexem(config_text, pos, main_server.get_last_server().valid_properties));
+            lexem = static_cast<lexem_t>(get_lexem(config_text, pos, main_server.server.valid_properties));
         } else {
             lexem = static_cast<lexem_t>(get_lexem(config_text, pos, main_server.valid_properties));
         }
@@ -250,7 +250,7 @@ void parse_config(MainServerSettings &main_server) {
 
         if (lexem == L_KEY) {
             if (is_server_adding) {
-                property_number = main_server.get_last_server().get_number_of_property(config_text.substr(pos_before, pos - pos_before));
+                property_number = main_server.server.get_number_of_property(config_text.substr(pos_before, pos - pos_before));
                 if (property_number == -1) {
                     state = S_ERR;
                     continue;
@@ -266,7 +266,7 @@ void parse_config(MainServerSettings &main_server) {
         } else if (lexem == L_VALUE) {
             if (is_server_adding) {
                 try {
-                    main_server.get_last_server().set_property(property_number,
+                    main_server.server.set_property(property_number,
                                                                config_text.substr(pos_before, pos - pos_before));
                 } catch (std::exception &exception) {
                     std::cout << exception.what();
@@ -297,7 +297,7 @@ void parse_config(MainServerSettings &main_server) {
                 continue;
             }
             state = S_LOCATION;
-            lexem = static_cast<lexem_t>(parse_location(main_server.get_last_server(), config_text, pos));
+            lexem = static_cast<lexem_t>(parse_location(main_server.server, config_text, pos));
         }
 
         state = stages[state][lexem];
@@ -306,5 +306,5 @@ void parse_config(MainServerSettings &main_server) {
     std::cout << main_server.count_workflows << std::endl;
     std::cout << main_server.access_log_file << std::endl;
     std::cout << main_server.error_log_file << std::endl;
-    main_server.get_last_server().print_properties();
+    main_server.get_server().print_properties();
 }

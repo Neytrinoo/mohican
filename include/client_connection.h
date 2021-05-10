@@ -3,7 +3,7 @@
 #include <string>
 #include <ctime>
 
-#include "config_parse.h"
+#include "server_settings.h"
 
 
 typedef enum {
@@ -15,6 +15,12 @@ typedef enum {
 class ClientConnection {
 public:
     ClientConnection(int sock, class ServerSettings *server_settings);
+
+    ClientConnection& operator=(const ClientConnection& other) = default;
+
+    ClientConnection(const ClientConnection& other) = default;
+
+    ClientConnection() = default;
 
     connection_status_t connection_processing();
 

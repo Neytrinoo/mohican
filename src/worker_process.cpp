@@ -5,8 +5,8 @@
 
 #include "worker_process.h"
 #include "http_request.h"
-#include "config_parse.h"
-#include "ClientConnection.h"
+#include "server_settings.h"
+#include "client_connection.h"
 
 #define EPOLL_SIZE 1024
 #define EPOLL_RUN_TIMEOUT -1

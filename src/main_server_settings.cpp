@@ -6,9 +6,8 @@
 #include "main_server_settings.h"
 #include "parse_functions.h"
 
-MainServerSettings::MainServerSettings(std::string config_file_name) : config_file_name(std::move(config_file_name)) {
-    parse_config(*this);
-}
+const std::vector<std::string> MainServerSettings::valid_properties = {"http", "count_workflows", "access_log",
+                                                                       "error_log", "server"};
 
 int MainServerSettings::get_number_of_properties(std::string property) {
     int begin = 0;
@@ -53,17 +52,19 @@ void MainServerSettings::set_property(int number_of_property, std::string value)
 
 void MainServerSettings::add_server() {
     this->is_any_server = true;
-    ServerSettings server;
     if (this->is_access_log_file) {
-        server.set_property(server.get_number_of_property("access_log"), this->access_log_file);
+        this->server.set_property(server.get_number_of_property("access_log"), this->access_log_file);
     }
     if (this->is_error_log_file) {
-        server.set_property(server.get_number_of_property("error_log"), this->error_log_file);
+        this->server.set_property(server.get_number_of_property("error_log"), this->error_log_file);
     }
-    this->servers.push_back(server);
 }
 
-ServerSettings &MainServerSettings::get_last_server() {
-    return this->servers[this->servers.size() - 1];
+int MainServerSettings::get_count_workflows() {
+    return this->count_workflows;
+}
+
+ServerSettings MainServerSettings::get_server() {
+    return this->server;
 }
 

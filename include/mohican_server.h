@@ -1,7 +1,8 @@
 #ifndef NGINX_PROJECT_NGINXSERVER_H
 #define NGINX_PROJECT_NGINXSERVER_H
 
-#include "config_parse.h"
+#include "main_server_settings.h"
+#include "server_settings.h"
 #include "worker_process.h"
 
 #include <vector>
@@ -27,13 +28,14 @@ typedef enum {
 class MohicanServer {
 public:
     MohicanServer() {
-        count_workflows = nginx_settings.get_count_workflows();
-        servers = nginx_settings.get_servers();
+        count_workflows = mohican_settings.get_count_workflows();
+        server = mohican_settings.get_server();
     }
     ~MohicanServer() = default;
 
     int server_start();
         static int daemonize();
+        bool bind_listen_sock();
         int add_work_processes();
         int fill_pid_file();
 
@@ -62,9 +64,11 @@ private:
     std::string error_log;
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
 
-    class ServerSettings servers;
+    class ServerSettings server;
 
-    MainServerSettings nginx_settings;  // TODO: реализовать default путь
+    int listen_sock;
+
+    MainServerSettings mohican_settings;  // TODO: реализовать default путь
 };
 
 #endif //NGINX_PROJECT_NGINXSERVER_H

@@ -46,9 +46,11 @@ private:
 public:
     ServerSettings() = default;
 
-    const std::vector<std::string> valid_properties = {"listen", "access_log", "error_log", "root", "location"};
+    ServerSettings &operator=(const ServerSettings &other) = default;
 
-    const std::vector<std::string> valid_location_properties = {"root", "add_root", "access_log", "error_log"};
+    static const std::vector<std::string> valid_properties;
+
+    static const std::vector<std::string> valid_location_properties;
 
     int get_number_of_property(std::string property);
 
@@ -66,9 +68,17 @@ public:
 
     void add_prefix_match_urls(location_t &location);
 
+    std::string get_access_log_filename();
+
+    std::string get_error_log_filename();
+
     std::string get_root(std::string url);
 
     void print_properties();
+
+    int get_port();
+
+    std::string get_servername();
 
     friend int parse_location(ServerSettings &server, std::string &config, int &pos);
 };

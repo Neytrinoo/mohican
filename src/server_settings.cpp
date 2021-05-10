@@ -6,6 +6,10 @@
 #include "exceptions_config_file.h"
 #include "server_settings_exceptions.h"
 
+const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
+                                                                   "location"};
+const std::vector<std::string> ServerSettings::valid_location_properties = {"root", "add_root", "access_log", "error_log"};
+
 int ServerSettings::get_number_of_property(std::string property) {
     int begin = 0;
     while (isspace(property[begin])) {
@@ -69,7 +73,8 @@ int ServerSettings::get_number_of_location_property(std::string property) {
     property_length = (property[property.length() - 1] == ':') ?
                       property.length() - begin - 1 : property.length() - begin;
 
-    for (auto prop_iter = this->valid_location_properties.begin(); prop_iter != this->valid_location_properties.end(); prop_iter++) {
+    for (auto prop_iter = this->valid_location_properties.begin();
+         prop_iter != this->valid_location_properties.end(); prop_iter++) {
         if (property.substr(begin, property_length) == *prop_iter) {
             return prop_iter - this->valid_location_properties.begin();
         }
@@ -174,4 +179,20 @@ void ServerSettings::add_regex_match_urls(location_t &location) {
 
 void ServerSettings::add_prefix_match_urls(location_t &location) {
     this->prefix_match_urls.push_back(location);
+}
+
+int ServerSettings::get_port() {
+    return this->port;
+}
+
+std::string ServerSettings::get_servername() {
+    return this->servername;
+}
+
+std::string ServerSettings::get_access_log_filename() {
+    return this->access_log_file;
+}
+
+std::string ServerSettings::get_error_log_filename() {
+    return this->error_log_file;
 }

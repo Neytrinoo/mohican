@@ -7,11 +7,11 @@
 
 class MainServerSettings {
 private:
-    std::string config_file_name;
+    std::string config_file_name = "../src/config.conf";
     int count_workflows;
     std::string access_log_file;
     std::string error_log_file;
-    std::vector<ServerSettings> servers;
+    ServerSettings server;
 
     bool is_access_log_file = false;
     bool is_error_log_file = false;
@@ -24,9 +24,11 @@ private:
     };
 
 public:
-    const std::vector<std::string> valid_properties = {"http", "count_workflows", "access_log", "error_log", "server"};
+    static const std::vector<std::string> valid_properties;
 
-    explicit MainServerSettings(std::string config_file_name);
+    MainServerSettings() = default;
+
+    MainServerSettings &operator=(const MainServerSettings &other) = default;
 
     int get_number_of_properties(std::string property);
 
@@ -34,9 +36,9 @@ public:
 
     void add_server();
 
-    ServerSettings &get_last_server();
-
     friend void parse_config(MainServerSettings &server);
 
+    int get_count_workflows();
 
+    ServerSettings get_server();
 };

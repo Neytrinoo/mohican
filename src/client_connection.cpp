@@ -7,8 +7,10 @@
 #include <exception>
 
 
-#include "ClientConnection.h"
+#include "client_connection.h"
 #include "http_request.h"
+#include "http_response.h"
+#include "http_handle.h"
 
 #define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time

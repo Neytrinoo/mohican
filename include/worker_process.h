@@ -5,8 +5,8 @@
 #include <string>
 #include <map>
 
-#include "config_parse.h"
-#include "ClientConnection.h"
+#include "server_settings.h"
+#include "client_connection.h"
 
 
 class WorkerProcess {

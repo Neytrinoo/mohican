@@ -3,11 +3,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "defines.h"
 #include "http_handle.h"
 #include "http_exceptions.h"
 
-HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
+HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
         throw ProtVersionException("Wrong protocol version");
     }
@@ -18,21 +17,25 @@ HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
     std::string value = "mohican";
     std::unordered_map<std::string, std::string> headers;
     headers[header] = value;
-    int file_fd = NOFILE;
-    int method = 0;
+    int file_fd;
 
-    if (request.get_method() == "GET" || request.get_method() == "HEAD") {
-        method = GET;
+    if (root == NO_ROOT) {
+        status = NOT_FOUND_STATUS;
+        message = NOT_FOUND_MSG;
+        header = CONNECTION_HDR;
+        value = CLOSE_VL;
+        headers[header] = value;
+    } else if (request.get_method() == "GET" || request.get_method() == "HEAD") {
         if (request.get_url() == "/") {
-            request.get_url() = "/index.html";
+            request.get_url() = DEFAULT_URL;
         }
         file_fd = open((root + request.get_url()).c_str(), O_RDONLY);
         struct stat file_stat;
-        if (file_fd == NOTOK || fstat(file_fd, &file_stat) == NOTOK) {
-            status = 404;
-            message = "not found";
-            header = "connection";
-            value = "close";
+        if (file_fd == NOT_OK || fstat(file_fd, &file_stat) == NOT_OK) {
+            status = NOT_FOUND_STATUS;
+            message = NOT_FOUND_MSG;
+            header = CONNECTION_HDR;
+            value = CLOSE_VL;
             headers[header] = value;
         } else {
             std::string content_type;
@@ -46,69 +49,17 @@ HttpResponse HttpHandler(const HttpRequest &request, const std::string &root) {
                 else if (strcmp(ext, "gif") == 0)
                     content_type = "image/gif";
             }
-            headers["content-type"] = content_type;
-            headers["content-length"] = std::to_string(file_stat.st_size);
-            status = 200;
-            message = "OK";
-            if (request.get_method() == "HEAD") {
-                close(file_fd);
-            }
-        }
-        if (request.get_method() == "HEAD") {
-            file_fd = NOFILE;
-            method = HEAD;
-        }
-    } else if (request.get_method() == "DELETE") {
-        method = DELETE;
-        if (request.get_url() == "/") {
-            request.get_url() = "/index.html";
-        }
-        file_fd = open((root + request.get_url()).c_str(), O_RDONLY);
-        if (file_fd == NOTOK) {
-            status = 204;
-            message = "no content";
-            header = "connection";
-            value = "close";
-            headers[header] = value;
-        } else {
+            headers[CONTENT_TYPE_HDR] = content_type;
+            headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
+            status = OK_STATUS;
+            message = OK_MSG;
+
             close(file_fd);
-            remove((root + request.get_url()).c_str());
-            status = 200;
-            message = "OK";
         }
-        file_fd = NOFILE;
-    } else if (request.get_method() == "PUT" || request.get_method() == "POST") {
-        if (request.get_method() == "PUT") {
-            method = PUT;
-        } else {
-            method = POST;
-        }
-        std::string filename = root + request.get_url();
-        if (access(filename.c_str(), F_OK) == OK) {
-            status = 200;
-            message = "OK";
-        } else {
-            status = 201;
-            message = "Created";
-        }
-        header = "content-location";
-        value = request.get_url();
-        headers[header] = value;
-        file_fd = open(filename.c_str(), O_CREAT | O_RDWR, COPYMODE);
-        char buffer[BUFSIZE];
-        while (true) {
-            int r = read(request.get_body(), buffer, sizeof(buffer));
-            if (r < 0)
-                throw ReadException("Cannot read body");
-            if (r == 0)
-                break;
-            if (write(file_fd, buffer, r) < 0)
-                throw WriteException("Cannot write file");
-        }
-        close(file_fd);
-        file_fd = NOFILE;
+    } else {
+        throw MethodException("Wrong method");
     }
 
     return HttpResponse(headers, request.get_major(), request.get_minor(),
-                        (root + request.get_url()), status, message, file_fd, method);
+                        (root + request.get_url()), status, message);
 }

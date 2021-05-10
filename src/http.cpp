@@ -16,9 +16,9 @@ int main() {
         char *file_c = static_cast<char *>(mmap(NULL, stat.st_size, PROT_WRITE, MAP_PRIVATE, fd, 0));
         std::string file(file_c);
         HttpRequest http_request(file);
-        HttpResponse http_response = HttpHandler(http_request, ".");
-        http_response.send(STDOUT_FILENO);
+        HttpResponse http_response = http_handler(http_request, ".");
         close(fd);
+        std::cout << http_response.get_string();
     }
     return 0;
 }

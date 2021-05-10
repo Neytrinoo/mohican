@@ -42,18 +42,20 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
             const char *ext = strrchr((root + request.get_url()).c_str(), '.');
             if (ext) {
                 ext++;
-                if (strcmp(ext, "html") == 0)
-                    content_type = "text/html";
-                else if (strcmp(ext, "jpg") == 0)
-                    content_type = "image/jpg";
-                else if (strcmp(ext, "gif") == 0)
-                    content_type = "image/gif";
+                if (strcmp(ext, HTML_EXT) == 0) {
+                    content_type = HTML_TYPE;
+                } else if (strcmp(ext, JPG_EXT) == 0) {
+                    content_type = JPG_TYPE;
+                } else if (strcmp(ext, GIF_EXT) == 0) {
+                    content_type = GIF_TYPE;
+                } else {
+                    throw WrongFileType("Unsupported file type");
+                }
             }
             headers[CONTENT_TYPE_HDR] = content_type;
             headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
             status = OK_STATUS;
             message = OK_MSG;
-
             close(file_fd);
         }
     } else {

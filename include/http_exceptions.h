@@ -37,3 +37,8 @@ class MethodException : public  HttpBaseException {
 public:
     MethodException(const std::string &msg) : HttpBaseException(msg) {}
 };
+
+class WrongFileType : public  HttpBaseException {
+public:
+    WrongFileType(const std::string &msg) : HttpBaseException(msg) {}
+};

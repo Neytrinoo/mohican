@@ -9,6 +9,7 @@ class HttpRequest : public HttpBase {
  public:
     HttpRequest() = default;
     HttpRequest(const int in_fd);
+    HttpRequest(const std::string &str);
     explicit HttpRequest(const HttpRequest &other) = default;
     HttpRequest &operator=(const HttpRequest &other) = default;
     ~HttpRequest() = default;

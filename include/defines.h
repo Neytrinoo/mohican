@@ -1,12 +1,18 @@
 #pragma once
 
 #define OK 0
-#define NOTOK -1
-#define NOFILE -10
-#define GET 1
-#define HEAD 2
-#define POST 3
-#define PUT 4
-#define DELETE 5
-#define BUFSIZE 4096
-#define COPYMODE 0644
+#define NOT_OK -1
+#define NO_ROOT "no root"
+
+#define OK_STATUS 200
+#define OK_MSG "OK"
+
+#define NOT_FOUND_STATUS 404
+#define NOT_FOUND_MSG "not found"
+
+#define CONNECTION_HDR "connection"
+#define CLOSE_VL "close"
+#define CONTENT_TYPE_HDR "content-type"
+#define CONTENT_LENGTH_HDR "content-length"
+
+#define DEFAULT_URL "/index.html"

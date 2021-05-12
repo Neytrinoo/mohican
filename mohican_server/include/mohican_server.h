@@ -1,9 +1,9 @@
 #ifndef NGINX_PROJECT_NGINXSERVER_H
 #define NGINX_PROJECT_NGINXSERVER_H
 
-#include "main_server_settings.h"
-#include "server_settings.h"
-#include "worker_process.h"
+#include "../../config/include/main_server_settings.h"
+#include "../../config/include/server_settings.h"
+#include "../../workers/include/worker_process.h"
 
 #include <vector>
 #include <string>

@@ -2,7 +2,7 @@
 #define MOHICAN_UPSTREAM_H
 
 #include "config_parse.h"
-#include "worker_process.h"
+#include "workers/include/worker_process.h"
 
 #include <vector>
 #include <string>

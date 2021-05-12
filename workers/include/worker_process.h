@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-#include "server_settings.h"
+#include "../../config/include/server_settings.h"
 #include "client_connection.h"
 
 

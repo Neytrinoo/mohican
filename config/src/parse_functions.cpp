@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <sys/stat.h>
 
 #include "parse_functions.h"
 #include "main_server_settings.h"

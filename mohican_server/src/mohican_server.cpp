@@ -1,5 +1,3 @@
-#include "mohican_server.h"
-
 #include <cstdlib>
 #include <unistd.h>
 #include <ctime>
@@ -8,8 +6,10 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "mohican_server.h"
+
 #define BACKLOG 128
-#define CONFIG_FILE_PATH "../src/config.conf"
+#define CONFIG_FILE_PATH "../../config/src/config.conf"
 
 
 int process_soft_stop = 0;

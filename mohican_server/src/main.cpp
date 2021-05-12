@@ -1,11 +1,14 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <iostream>
 #include "mohican_server.h"
+#include "http_request.h"
 
 
 int main() {
-    //MohicanServer server;
-    //server.server_start();
+    MohicanServer server;
+    server.server_start();
+    /*
     int listen_sock;
     MainServerSettings server("../src/config.conf");
     ServerSettings server_settings = server.get_server();
@@ -34,6 +37,7 @@ int main() {
     WorkerProcess worker(listen_sock, &server_settings);
 
     worker.run();
+    */
 
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <string>
 #include <ctime>
 
-#include "../../config/include/server_settings.h"
+#include "server_settings.h"
 
 
 typedef enum {

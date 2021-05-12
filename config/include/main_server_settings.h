@@ -8,7 +8,7 @@
 class MainServerSettings {
 private:
     std::string config_file_name;
-    int count_workflows;
+    int count_workflows = 4;
     std::string access_log_file;
     std::string error_log_file;
     ServerSettings server;

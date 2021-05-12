@@ -9,7 +9,7 @@
 #include "mohican_server.h"
 
 #define BACKLOG 128
-#define CONFIG_FILE_PATH "../../config/src/config.conf"
+#define CONFIG_FILE_PATH "../config/src/config.conf"
 
 
 int process_soft_stop = 0;
@@ -145,11 +145,10 @@ int MohicanServer::start_balancing(int *number_process) {
 }
 
 int MohicanServer::server_start() {
-    /*
     if (daemonize() != 0) {
         return -1;
     }
-     */
+
 
     if (fill_pid_file() == -1) {
         return -1;

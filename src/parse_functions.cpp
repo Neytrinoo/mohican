@@ -302,9 +302,10 @@ void parse_config(MainServerSettings &main_server) {
 
         state = stages[state][lexem];
     }
-
+    /*
     std::cout << main_server.count_workflows << std::endl;
     std::cout << main_server.access_log_file << std::endl;
     std::cout << main_server.error_log_file << std::endl;
     main_server.get_server().print_properties();
+     */
 }

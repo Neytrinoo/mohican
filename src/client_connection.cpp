@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <exception>
+#include <fstream>
+#include <iostream>
 
 
 #include "client_connection.h"
@@ -24,6 +26,7 @@ connection_status_t ClientConnection::connection_processing() {
     if (this->stage == GET_REQUEST) {
         if (this->get_request()) {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
+            std::cout << this->request;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // if the user does not send data for a long time, we close the connection
             close(this->sock);

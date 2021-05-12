@@ -27,10 +27,8 @@ typedef enum {
 
 class MohicanServer {
 public:
-    MohicanServer() {
-        count_workflows = mohican_settings.get_count_workflows();
-        server = mohican_settings.get_server();
-    }
+    MohicanServer();
+
     ~MohicanServer() = default;
 
     int server_start();

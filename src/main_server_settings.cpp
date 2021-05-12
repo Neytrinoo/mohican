@@ -9,6 +9,10 @@
 const std::vector<std::string> MainServerSettings::valid_properties = {"http", "count_workflows", "access_log",
                                                                        "error_log", "server"};
 
+MainServerSettings::MainServerSettings(std::string config_file_name) : config_file_name(std::move(config_file_name)) {
+    parse_config(*this);
+}
+
 int MainServerSettings::get_number_of_properties(std::string property) {
     int begin = 0;
     while (isspace(property[begin])) {

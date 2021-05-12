@@ -1,6 +1,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <ctime>
+#include <iostream>
 #include <fcntl.h>
 
 #include "worker_process.h"
@@ -37,6 +38,7 @@ void WorkerProcess::run() {
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
                 this->client_connections[client] = ClientConnection(client, this->server_settings);
             } else {  // if the event happened on a client socket
+                std::cout << "connection send" << std::endl;
                 connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
                 if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR) {
                     this->client_connections.erase(events[i].data.fd);

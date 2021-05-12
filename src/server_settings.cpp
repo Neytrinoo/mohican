@@ -7,7 +7,8 @@
 #include "server_settings_exceptions.h"
 
 const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
-                                                                   "location"};
+                                                                   "location", "servername"};
+
 const std::vector<std::string> ServerSettings::valid_location_properties = {"root", "add_root", "access_log", "error_log"};
 
 int ServerSettings::get_number_of_property(std::string property) {
@@ -54,6 +55,9 @@ void ServerSettings::set_property(int number_of_property, std::string value) {
             this->root = value.substr(begin, value_length);
             this->is_root = true;
             break;
+        case SERVERNAME_NUMBER:
+            this->servername = value.substr(begin, value_length);
+            break;
     }
 }
 
@@ -62,6 +66,7 @@ void ServerSettings::print_properties() {
     std::cout << this->error_log_file << std::endl;
     std::cout << this->root << std::endl;
     std::cout << this->port << std::endl;
+    std::cout << this->servername << std::endl;
 }
 
 int ServerSettings::get_number_of_location_property(std::string property) {

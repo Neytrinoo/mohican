@@ -7,7 +7,7 @@
 
 class MainServerSettings {
 private:
-    std::string config_file_name = "../src/config.conf";
+    std::string config_file_name;
     int count_workflows;
     std::string access_log_file;
     std::string error_log_file;
@@ -27,6 +27,9 @@ public:
     static const std::vector<std::string> valid_properties;
 
     MainServerSettings() = default;
+
+    explicit MainServerSettings(std::string config_file_name);
+
 
     MainServerSettings &operator=(const MainServerSettings &other) = default;
 

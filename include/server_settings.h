@@ -26,11 +26,13 @@ private:
     std::vector<location_t> regex_match_urls;
     std::vector<location_t> prefix_match_urls;
 
+    // the value of the elements enum is written the index of this key in the array of properties
     enum numbers_of_properties {
         LISTEN_NUMBER = 0,
         ACCESS_LOG_NUMBER = 1,
         ERROR_LOG_NUMBER = 2,
-        ROOT_NUMBER = 3
+        ROOT_NUMBER = 3,
+        SERVERNAME_NUMBER = 5
     };
 
     enum numbers_of_location_properties {

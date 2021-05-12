@@ -7,14 +7,20 @@
 #include <csignal>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
 
 #define BACKLOG 128
+#define CONFIG_FILE_PATH "../src/config.conf"
 
 
 int process_soft_stop = 0;
 int process_hard_stop = 0;
 int process_reload = 0;
+
+MohicanServer::MohicanServer() {
+    this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
+    this->count_workflows = this->mohican_settings.get_count_workflows();
+    this->server = this->mohican_settings.get_server();
+}
 
 int MohicanServer::daemonize() {
     close(STDIN_FILENO);
@@ -86,7 +92,7 @@ int MohicanServer::log_open() {
             return -1;
         } else {
             log_message(server.get_servername(), ERROR_LEVEL, "CONFIGURATION IS FALSE, ERROR PATH TO ACCESS LOG "
-                                                                + server.get_access_log_filename());
+                                                              + server.get_access_log_filename());
         }
     } else {
         log_message(server.get_servername(), ACCESS_LEVEL, "SERVER STARTED!");
@@ -139,9 +145,11 @@ int MohicanServer::start_balancing(int *number_process) {
 }
 
 int MohicanServer::server_start() {
+    /*
     if (daemonize() != 0) {
         return -1;
     }
+     */
 
     if (fill_pid_file() == -1) {
         return -1;
@@ -282,8 +290,12 @@ bool MohicanServer::bind_listen_sock() {
     if (inet_aton(server.get_servername().c_str(), &addr.sin_addr) == -1)
         return false;
 
-    if (bind(this->listen_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+    if (bind(this->listen_sock, (struct sockaddr *) &addr, sizeof(addr)) == -1)
         return false;
+
+    if (listen(this->listen_sock, BACKLOG) == -1) {
+        return false;
+    }
 
     return true;
 }

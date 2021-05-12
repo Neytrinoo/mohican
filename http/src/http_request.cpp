@@ -50,7 +50,7 @@ HttpRequest::HttpRequest(const std::string &str) {
         start_pos++;
     }
 
-    std::string protocol(str, start_pos, lf_pos - start_pos);
+    std::string protocol(str, start_pos, (str[lf_pos - 1] == '\r' ? lf_pos - 1 : lf_pos) - start_pos);
     if (sscanf(protocol.c_str(), "HTTP/%d.%d", &version_major_, &version_minor_) != 2) {
         throw ReadException("Error while reading from file descriptor");
     }
@@ -58,7 +58,7 @@ HttpRequest::HttpRequest(const std::string &str) {
     start_pos = lf_pos + 1;
     while (true) {
         lf_pos = str.find('\n', start_pos);
-        if (lf_pos == std::string::npos || lf_pos == start_pos) {
+        if (lf_pos == std::string::npos || lf_pos == start_pos || str[start_pos] == '\r') {
             break;
         }
         size_t colon_pos = str.find(':', start_pos);
@@ -72,7 +72,7 @@ HttpRequest::HttpRequest(const std::string &str) {
         while (str[start_pos] == ' ') {
             start_pos++;
         }
-        std::string header_value(str, start_pos, lf_pos - start_pos);
+        std::string header_value(str, start_pos, (str[lf_pos - 1] == '\r' ? lf_pos - 1 : lf_pos) - start_pos);
         string_to_lower(header_value);
         headers_[header_name] = header_value;
         start_pos = lf_pos + 1;

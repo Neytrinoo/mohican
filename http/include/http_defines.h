@@ -10,6 +10,9 @@
 #define NOT_FOUND_STATUS 404
 #define NOT_FOUND_MSG "not found"
 
+#define UNSUPPORTED_STATUS 415
+#define UNSUPPORTED_MSG "Unsupported Media Type"
+
 #define CONNECTION_HDR "connection"
 #define CLOSE_VL "close"
 #define CONTENT_TYPE_HDR "content-type"

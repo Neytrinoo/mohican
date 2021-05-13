@@ -6,11 +6,12 @@
 
 
 int main() {
-    MohicanServer server;
-    server.server_start();
-    /*
+    //MohicanServer server;
+    //server.server_start();
+
+
     int listen_sock;
-    MainServerSettings server("../src/config.conf");
+    MainServerSettings server("../settings/config.conf");
     ServerSettings server_settings = server.get_server();
 
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,7 +38,10 @@ int main() {
     WorkerProcess worker(listen_sock, &server_settings);
 
     worker.run();
-    */
+
+
+    MainServerSettings config_serv("../config/src/config.conf");
+    config_serv.get_server().print_properties();
 
     return 0;
 }

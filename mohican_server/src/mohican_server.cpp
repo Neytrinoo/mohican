@@ -9,7 +9,7 @@
 #include "mohican_server.h"
 
 #define BACKLOG 128
-#define CONFIG_FILE_PATH "../config/src/config.conf"
+#define CONFIG_FILE_PATH "../settings/config.conf"
 
 
 int process_soft_stop = 0;

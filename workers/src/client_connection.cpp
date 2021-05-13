@@ -16,7 +16,7 @@
 
 #define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
-#define PAGE_404 "404.html" // потом изменить
+#define PAGE_404 "../statics/404_page/404.html" // потом изменить
 #define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
 
 ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings) : sock(sock), server_settings(
@@ -26,7 +26,6 @@ connection_status_t ClientConnection::connection_processing() {
     if (this->stage == GET_REQUEST) {
         if (this->get_request()) {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
-            std::cout << this->request << std::endl;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // if the user does not send data for a long time, we close the connection
             close(this->sock);
@@ -39,7 +38,6 @@ connection_status_t ClientConnection::connection_processing() {
         if (this->form_http_header_response()) {
             this->stage = SEND_HTTP_HEADER_RESPONSE;
         }
-        std::cout << "privetic" << std::endl;
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -91,6 +89,7 @@ bool ClientConnection::get_request() {
 bool ClientConnection::form_http_header_response() {
     HttpRequest http_request(this->request);
     std::string url = http_request.get_url();
+
     HttpResponse http_response;
     try {
         std::string root = this->server_settings->get_root(url);
@@ -118,6 +117,7 @@ bool ClientConnection::send_http_header_response() {
         response_pos++;
         if (response_pos == this->response.size() - 1) {
             this->response.clear();
+            write(this->sock, "\r\n", 2);
             return true;
         }
         is_write_data = true;

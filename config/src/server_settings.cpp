@@ -6,6 +6,8 @@
 #include "exceptions_config_file.h"
 #include "server_settings_exceptions.h"
 
+#define STATICS_FOLDER_PATH "../statics"
+
 const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
                                                                    "location", "servername"};
 
@@ -52,7 +54,7 @@ void ServerSettings::set_property(int number_of_property, std::string value) {
             this->error_log_file = value.substr(begin, value_length);
             break;
         case ROOT_NUMBER:
-            this->root = value.substr(begin, value_length);
+            this->root = STATICS_FOLDER_PATH + value.substr(begin, value_length);
             this->is_root = true;
             break;
         case SERVERNAME_NUMBER:
@@ -67,6 +69,20 @@ void ServerSettings::print_properties() {
     std::cout << this->root << std::endl;
     std::cout << this->port << std::endl;
     std::cout << this->servername << std::endl;
+    std::cout << "urls" << std::endl;
+    for (auto &i : this->exact_match_urls) {
+        std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+    }
+    for (auto &i : this->preferential_prefix_urls) {
+        std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+    }
+    for (auto &i : this->regex_match_urls) {
+        std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+    }
+    for (auto &i : this->prefix_match_urls) {
+        std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+    }
+
 }
 
 int ServerSettings::get_number_of_location_property(std::string property) {
@@ -98,7 +114,7 @@ void ServerSettings::set_location_property(int number_of_property, std::string v
                    value.length() - begin - 1 : value.length() - begin;
     switch (number_of_property) {
         case ROOT_LOCATION_NUMBER:
-            location.root = value.substr(begin, value_length);
+            location.root = STATICS_FOLDER_PATH + value.substr(begin, value_length);
             break;
         case ADD_ROOT_NUMBER:
             location.root = this->root + value.substr(begin, value_length);

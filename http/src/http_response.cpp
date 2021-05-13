@@ -18,6 +18,6 @@ std::string HttpResponse::get_string() {
     for (const auto &header: headers_) {
         str += header.first + ": " + header.second + "\r\n";
     }
-    str += "\n";
+    str += "\r\n";
     return str;
 }

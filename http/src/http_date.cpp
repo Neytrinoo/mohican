@@ -7,10 +7,10 @@ const std::vector<std::string>
 
 const std::vector<std::string> Date::week_days_ = {"Unknown", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
-Date::Date() {
+std::string Date::get_date() {
     std::time_t t = std::time(nullptr);
-    struct tm* tm = std::gmtime(&t);
-    date_ = get_week_day(tm->tm_wday) + ", " + add_leading_zero(tm->tm_mday) + " " + get_month(tm->tm_mon) + " "
+    struct tm *tm = std::gmtime(&t);
+    return get_week_day(tm->tm_wday) + ", " + add_leading_zero(tm->tm_mday) + " " + get_month(tm->tm_mon) + " "
             + std::to_string(1900 + tm->tm_year) + " " + add_leading_zero(tm->tm_hour) + ":"
             + add_leading_zero(tm->tm_min) + ":" + add_leading_zero(tm->tm_sec) + " GMT";
 }
@@ -28,8 +28,4 @@ std::string Date::add_leading_zero(int num) {
 
 std::string Date::get_month(int month) {
     return months_[month % 12];
-}
-
-std::string Date::get_date() const {
-    return date_;
 }

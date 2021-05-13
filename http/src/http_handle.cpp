@@ -3,8 +3,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "http_handle.h"
 #include "http_exceptions.h"
+#include "http_file_types.h"
+#include "http_handle.h"
 
 HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
@@ -39,18 +40,21 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
             headers[header] = value;
         } else {
             std::string content_type;
-            const char *ext = strrchr((root + request.get_url()).c_str(), '.');
-            if (ext) {
-                ext++;
-                if (strcmp(ext, HTML_EXT) == 0) {
+            size_t ext_pos = request.get_url().rfind('.');
+            if (ext_pos != std::string::npos) {
+                ext_pos++;
+                std::string ext = request.get_url().substr(ext_pos, request.get_url().size() - ext_pos);
+                if (ext == HTML_EXT) {
                     content_type = HTML_TYPE;
-                } else if (strcmp(ext, JPG_EXT) == 0) {
+                } else if (ext == JPG_EXT) {
                     content_type = JPG_TYPE;
-                } else if (strcmp(ext, GIF_EXT) == 0) {
+                } else if (ext == GIF_EXT) {
                     content_type = GIF_TYPE;
                 } else {
                     throw WrongFileType("Unsupported file type");
                 }
+            } else {
+                content_type = PLAIN_TYPE;
             }
             headers[CONTENT_TYPE_HDR] = content_type;
             headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);

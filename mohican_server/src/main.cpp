@@ -10,6 +10,7 @@ int main() {
     //server.server_start();
 
 
+
     int listen_sock;
     MainServerSettings server("../settings/config.conf");
     ServerSettings server_settings = server.get_server();
@@ -42,6 +43,7 @@ int main() {
 
     MainServerSettings config_serv("../config/src/config.conf");
     config_serv.get_server().print_properties();
+
 
     return 0;
 }

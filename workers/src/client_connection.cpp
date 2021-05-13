@@ -28,7 +28,7 @@ connection_status_t ClientConnection::connection_processing() {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // if the user does not send data for a long time, we close the connection
-            close(this->sock);
+            // close(this->sock);
             return CONNECTION_TIMEOUT_ERROR;
 
         }
@@ -45,17 +45,18 @@ connection_status_t ClientConnection::connection_processing() {
             this->stage = SEND_FILE;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // if the user cannot accept the data for a long time we close the connection
-            close(this->sock);
+            // close(this->sock);
             return CONNECTION_TIMEOUT_ERROR;
         }
     }
 
     if (this->stage == SEND_FILE) {
         if (this->send_file()) {
-            this->close_connection();
+            // this->close_connection();
+            std::cout << "success connection with client sock = " << this->sock << std::endl;
             return CONNECTION_FINISHED;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
-            close(this->sock);
+            // close(this->sock);
             return CONNECTION_TIMEOUT_ERROR;
         }
     }

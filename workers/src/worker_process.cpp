@@ -32,13 +32,14 @@ void WorkerProcess::run() {
                 client = accept(this->listen_sock, NULL, NULL);
                 fcntl(client, F_SETFL, fcntl(client, F_GETFL, 0) | O_NONBLOCK);
                 ev.data.fd = client;
-                ev.events = EPOLLIN;
+                ev.events = EPOLLIN | EPOLLET;
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
                 this->client_connections[client] = ClientConnection(client, this->server_settings);
             } else {  // if the event happened on a client socket
                 connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
                 if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR) {
                     this->client_connections.erase(events[i].data.fd);
+                    close(events[i].data.fd);
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);
                 }
             }

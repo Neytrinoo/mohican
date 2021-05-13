@@ -3,13 +3,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "http_date.h"
 #include "http_exceptions.h"
 #include "http_file_types.h"
 #include "http_handle.h"
 
 static std::string get_content_type(size_t ext_pos, const std::string& url);
 
-HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
+HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
         throw ProtVersionException("Wrong protocol version");
     }
@@ -25,7 +26,7 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
     if (root == NO_ROOT) {
         status = NOT_FOUND_STATUS;
         message = NOT_FOUND_MSG;
-    } else if (request.get_method() == "GET" || request.get_method() == "HEAD") {
+    } else if (request.get_method() == GET_METHOD || request.get_method() == HEAD_METHOD) {
         if (request.get_url() == "/") {
             request.get_url() = DEFAULT_URL;
         }
@@ -43,7 +44,7 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
                 headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
                 status = OK_STATUS;
                 message = OK_MSG;
-            } catch (WriteException &e) {
+            } catch (WriteException& e) {
                 status = UNSUPPORTED_STATUS;
                 message = UNSUPPORTED_MSG;
             }
@@ -52,6 +53,7 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
         throw MethodException("Wrong method");
     }
 
+    headers[DATE_HDR] = Date::get_date();
     headers[CONNECTION_HDR] = CLOSE_VL;
     return HttpResponse(headers, request.get_major(), request.get_minor(), status, message);
 }

@@ -21,6 +21,8 @@
 #define CONTENT_TYPE_HDR "content-type"
 #define CONTENT_LENGTH_HDR "content-length"
 #define DATE_HDR "date"
+#define SERVER_HDR "server"
+#define SERVER_VL "mohican"
 
 #define DEFAULT_URL "/index.html"
 

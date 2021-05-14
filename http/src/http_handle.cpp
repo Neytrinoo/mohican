@@ -14,12 +14,10 @@ HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
         throw ProtVersionException("Wrong protocol version");
     }
 
-    int status = 0;
+    int status;
     std::string message;
-    std::string header = "server";
-    std::string value = "mohican";
     std::unordered_map<std::string, std::string> headers;
-    headers[header] = value;
+    headers[SERVER_HDR] = SERVER_VL;
     int file_fd;
 
     if (root == NO_ROOT) {
@@ -43,7 +41,7 @@ HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
                 headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
                 status = OK_STATUS;
                 message = OK_MSG;
-            } catch (WriteException& e) {
+            } catch (WrongFileType&) {
                 status = UNSUPPORTED_STATUS;
                 message = UNSUPPORTED_MSG;
             }

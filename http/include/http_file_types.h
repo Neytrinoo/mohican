@@ -1,14 +1,77 @@
 #pragma once
 
-#define PLAIN_TYPE "text/plain"
+#include <string>
+#include <unordered_map>
 
-#define HTML_EXT "html"
-#define HTML_TYPE "text/html"
-
-#define JPG_TYPE "image/jpg"
-#define JPG_EXT "jpg"
-
-#define GIF_EXT "gif"
-#define GIF_TYPE "image/gif"
-
-
+static const std::unordered_map<std::string, std::string> types = {
+        {"aac", "audio/aac"},
+        {"abw", "application/x-abiword"},
+        {"arc", "application/x-freearc"},
+        {"avi", "video/x-msvideo"},
+        {"azw", "application/vnd.amazon.ebook"},
+        {"bin", "application/octet-stream"},
+        {"bmp", "image/bmp"},
+        {"bz", "application/x-bzip"},
+        {"bz2", "application/x-bzip2"},
+        {"csh", "application/x-csh"},
+        {"css", "text/css"},
+        {"csv", "text/csv"},
+        {"doc", "application/msword"},
+        {"docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+        {"eot", "application/vnd.ms-fontobject"},
+        {"epub", "application/epub+zip"},
+        {"gz", "application/gzip"},
+        {"gif", "image/gif"},
+        {"html", "text/html"},
+        {"htm", "text/html"},
+        {"ico", "image/vnd.microsoft.icon"},
+        {"ics", "text/calendar"},
+        {"jar", "application/java-archive"},
+        {"jpg", "image/jpg"},
+        {"jpeg", "image/jpg"},
+        {"js", "text/javascript"},
+        {"json", "application/json"},
+        {"jsonld", "application/ld+json"},
+        {"mid", "audio/x-midi"},
+        {"midi", "audio/midi"},
+        {"mjs", "text/javascript"},
+        {"mp3", "audio/mpeg"},
+        {"mpeg", "video/mpeg"},
+        {"mpkg", "application/vnd.apple.installer+xml"},
+        {"odp", "application/vnd.oasis.opendocument.presentation"},
+        {"ods", "application/vnd.oasis.opendocument.spreadsheet"},
+        {"odt", "application/vnd.oasis.opendocument.text"},
+        {"oga", "audio/ogg"},
+        {"ogv", "video/ogg"},
+        {"ogx", "application/ogg"},
+        {"opus", "audio/opus"},
+        {"otf", "font/otf"},
+        {"png", "image/png"},
+        {"pdf", "application/pdf"},
+        {"php", "application/php"},
+        {"ppt", "application/vnd.ms-powerpoint"},
+        {"pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},
+        {"rar", "application/vnd.rar"},
+        {"rtf", "application/rtf"},
+        {"sh", "application/x-sh"},
+        {"svg", "image/svg+xml"},
+        {"swf", "application/x-shockwave-flash"},
+        {"tar", "application/x-tar"},
+        {"tif", "image/tiff"},
+        {"tiff", "image/tiff"},
+        {"ts", "video/mp2t"},
+        {"ttf", "font/ttf"},
+        {"txt", "text/plain"},
+        {"vsd", "application/vnd.visio"},
+        {"wav", "audio/wav"},
+        {"weba", "audio/webm"},
+        {"webm", "video/webm"},
+        {"webp", "image/webp"},
+        {"woff", "font/woff"},
+        {"woff2", "font/woff2"},
+        {"xhtml", "application/xhtml+xml"},
+        {"xls", "application/vnd.ms-excel"},
+        {"xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+        {"xul", "application/vnd.mozilla.xul+xml"},
+        {"zip", "application/zip"},
+        {"7z", "application/x-7z-compressed"}};

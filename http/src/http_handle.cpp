@@ -7,7 +7,7 @@
 #include "http_file_types.h"
 #include "http_handle.h"
 
-static std::string get_content_type(size_t ext_pos, const std::string& url);
+static std::string get_content_type(const std::string& url);
 
 HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
@@ -34,9 +34,8 @@ HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
             message = NOT_FOUND_MSG;
         } else {
             close(file_fd);
-            size_t ext_pos = request.get_url().rfind('.');
             try {
-                std::string content_type = get_content_type(ext_pos, request.get_url());
+                std::string content_type = get_content_type(request.get_url());
                 headers[CONTENT_TYPE_HDR] = content_type;
                 headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
                 status = OK_STATUS;
@@ -55,22 +54,23 @@ HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
     return HttpResponse(headers, request.get_major(), request.get_minor(), status, message);
 }
 
-static std::string get_content_type(size_t ext_pos, const std::string& url) {
+static std::string get_content_type(const std::string& url) {
+    size_t ext_pos = url.rfind('.');
+    size_t slash_pos = url.rfind('/');
+    if (ext_pos < slash_pos && slash_pos != std::string::npos) {
+        ext_pos = std::string::npos;
+    }
+    
     std::string content_type;
     if (ext_pos != std::string::npos) {
         ext_pos++;
         std::string ext = url.substr(ext_pos, url.size() - ext_pos);
-        if (ext == HTML_EXT) {
-            content_type = HTML_TYPE;
-        } else if (ext == JPG_EXT) {
-            content_type = JPG_TYPE;
-        } else if (ext == GIF_EXT) {
-            content_type = GIF_TYPE;
-        } else {
+        auto iter = types.find(ext);
+        if (iter == types.end())
             throw WrongFileType("Unsupported file type");
-        }
+        content_type = iter->second;
     } else {
-        content_type = PLAIN_TYPE;
+        content_type = types.find("txt")->second;
     }
     return content_type;
 }

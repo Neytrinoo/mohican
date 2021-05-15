@@ -1,5 +1,8 @@
 #pragma once
 
+#define GET_METHOD "GET"
+#define HEAD_METHOD "HEAD"
+
 #define OK 0
 #define NOT_OK -1
 #define NO_ROOT "no root"
@@ -10,16 +13,16 @@
 #define NOT_FOUND_STATUS 404
 #define NOT_FOUND_MSG "not found"
 
+#define UNSUPPORTED_STATUS 415
+#define UNSUPPORTED_MSG "Unsupported Media Type"
+
 #define CONNECTION_HDR "connection"
 #define CLOSE_VL "close"
 #define CONTENT_TYPE_HDR "content-type"
 #define CONTENT_LENGTH_HDR "content-length"
+#define DATE_HDR "date"
+#define SERVER_HDR "server"
+#define SERVER_VL "mohican"
 
 #define DEFAULT_URL "/index.html"
 
-#define HTML_EXT "html"
-#define HTML_TYPE "text/html"
-#define JPG_TYPE "image/jpg"
-#define JPG_EXT "jpg"
-#define GIF_EXT "gif"
-#define GIF_TYPE "image/gif"

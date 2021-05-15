@@ -1,31 +1,29 @@
-#include <cstring>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "http_handle.h"
+#include "http_date.h"
 #include "http_exceptions.h"
+#include "http_file_types.h"
+#include "http_handle.h"
 
-HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
+static std::string get_content_type(const std::string& url);
+
+HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
     if (request.get_major() != 1 || (request.get_minor() != 0 && request.get_minor() != 1)) {
         throw ProtVersionException("Wrong protocol version");
     }
 
-    int status = 0;
+    int status;
     std::string message;
-    std::string header = "server";
-    std::string value = "mohican";
     std::unordered_map<std::string, std::string> headers;
-    headers[header] = value;
+    headers[SERVER_HDR] = SERVER_VL;
     int file_fd;
 
     if (root == NO_ROOT) {
         status = NOT_FOUND_STATUS;
         message = NOT_FOUND_MSG;
-        header = CONNECTION_HDR;
-        value = CLOSE_VL;
-        headers[header] = value;
-    } else if (request.get_method() == "GET" || request.get_method() == "HEAD") {
+    } else if (request.get_method() == GET_METHOD || request.get_method() == HEAD_METHOD) {
         if (request.get_url() == "/") {
             request.get_url() = DEFAULT_URL;
         }
@@ -34,33 +32,45 @@ HttpResponse http_handler(const HttpRequest &request, const std::string &root) {
         if (file_fd == NOT_OK || fstat(file_fd, &file_stat) == NOT_OK) {
             status = NOT_FOUND_STATUS;
             message = NOT_FOUND_MSG;
-            header = CONNECTION_HDR;
-            value = CLOSE_VL;
-            headers[header] = value;
         } else {
-            std::string content_type;
-            const char *ext = strrchr((root + request.get_url()).c_str(), '.');
-            if (ext) {
-                ext++;
-                if (strcmp(ext, HTML_EXT) == 0) {
-                    content_type = HTML_TYPE;
-                } else if (strcmp(ext, JPG_EXT) == 0) {
-                    content_type = JPG_TYPE;
-                } else if (strcmp(ext, GIF_EXT) == 0) {
-                    content_type = GIF_TYPE;
-                } else {
-                    throw WrongFileType("Unsupported file type");
-                }
-            }
-            headers[CONTENT_TYPE_HDR] = content_type;
-            headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
-            status = OK_STATUS;
-            message = OK_MSG;
             close(file_fd);
+            try {
+                std::string content_type = get_content_type(request.get_url());
+                headers[CONTENT_TYPE_HDR] = content_type;
+                headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
+                status = OK_STATUS;
+                message = OK_MSG;
+            } catch (WrongFileType&) {
+                status = UNSUPPORTED_STATUS;
+                message = UNSUPPORTED_MSG;
+            }
         }
     } else {
         throw MethodException("Wrong method");
     }
 
+    headers[DATE_HDR] = Date::get_date();
+    headers[CONNECTION_HDR] = CLOSE_VL;
     return HttpResponse(headers, request.get_major(), request.get_minor(), status, message);
+}
+
+static std::string get_content_type(const std::string& url) {
+    size_t ext_pos = url.rfind('.');
+    size_t slash_pos = url.rfind('/');
+    if (ext_pos < slash_pos && slash_pos != std::string::npos) {
+        ext_pos = std::string::npos;
+    }
+    
+    std::string content_type;
+    if (ext_pos != std::string::npos) {
+        ext_pos++;
+        std::string ext = url.substr(ext_pos, url.size() - ext_pos);
+        auto iter = types.find(ext);
+        if (iter == types.end())
+            throw WrongFileType("Unsupported file type");
+        content_type = iter->second;
+    } else {
+        content_type = types.find("txt")->second;
+    }
+    return content_type;
 }

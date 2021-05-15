@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "defines.h"
+#include "http_defines.h"
 #include "http_base.h"
 
 class HttpResponse : public HttpBase {

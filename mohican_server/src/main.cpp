@@ -8,7 +8,9 @@
 
 int main() {
     MohicanServer server;
-    server.server_start();
+    if (server.server_start() != 0) {
+        return -1;
+    }
 
     /*
     int listen_sock;

@@ -7,6 +7,13 @@
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/attributes.hpp>
 
 
 #include "client_connection.h"
@@ -30,6 +37,7 @@ connection_status_t ClientConnection::connection_processing() {
     if (this->stage == GET_REQUEST) {
         if (this->get_request()) {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
+
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // if the user does not send data for a long time, we close the connection
             // close(this->sock);
@@ -98,6 +106,8 @@ bool ClientConnection::get_request() {
 bool ClientConnection::form_http_header_response() {
     HttpRequest http_request(this->request);
     std::string url = http_request.get_url();
+
+    BOOST_LOG_TRIVIAL(info) << "New connection   [URL : " << url << "]   [WORKER PID : " << getpid() << "]";
 
     HttpResponse http_response;
     try {

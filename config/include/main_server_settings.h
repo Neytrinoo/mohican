@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "server_settings.h"
+#include "config_defines.h"
 
 class MainServerSettings {
 private:
@@ -12,6 +13,8 @@ private:
     std::string access_log_file;
     std::string error_log_file;
     ServerSettings server;
+    std::string log_filename = "../mohican.log";
+    std::string log_level = "debug";
 
     bool is_access_log_file = false;
     bool is_error_log_file = false;
@@ -44,4 +47,7 @@ public:
     int get_count_workflows();
 
     ServerSettings get_server();
+
+    std::string get_log_filename();
+    std::string get_log_level();
 };

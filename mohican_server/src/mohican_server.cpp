@@ -9,7 +9,7 @@
 #include "mohican_server.h"
 
 #define BACKLOG 128
-#define CONFIG_FILE_PATH "../settings/config.conf"
+#define CONFIG_FILE_PATH "../settings/mohican.conf"
 
 
 int process_soft_stop = 0;
@@ -43,6 +43,16 @@ int MohicanServer::daemonize() {
 }
 
 int MohicanServer::fill_pid_file() {
+    /*
+    std::ofstream debug;
+    debug.open("debug.txt");
+    debug << getppid();
+    debug.close();
+    */
+    if (getppid() != 1 && getppid() != 0) {
+        return 0;
+    }
+
     std::ofstream stream_to_pid_file;
     stream_to_pid_file.open("pid_file.txt", std::ios::out);
 
@@ -50,12 +60,12 @@ int MohicanServer::fill_pid_file() {
         return -1;
     }
 
-    if (getppid() == 1) {
-        stream_to_pid_file << getpid() << std::endl;
-        for (auto i : workers_pid) {
-            stream_to_pid_file << i << std::endl;
-        }
+    stream_to_pid_file << getpid() << std::endl;
+    for (auto i : workers_pid) {
+        stream_to_pid_file << i << std::endl;
     }
+
+
 
     stream_to_pid_file.close();
 
@@ -80,7 +90,10 @@ int MohicanServer::add_work_processes() {
     return 0;
 }
 
-logger_t MohicanServer::log_open(std::string path_to_log, std::string level_log, bool key) {
+int MohicanServer::log_open(std::string path_to_log, std::string level_log, bool key) {
+    if (level_log != "info" && level_log != "debug" && level_log != "error") {
+        return -1;
+    }
 
     boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
 
@@ -110,7 +123,7 @@ logger_t MohicanServer::log_open(std::string path_to_log, std::string level_log,
     std::string string_with_pid;
     int i;
     stream_to_read.open("pid_file.txt", std::ios::in);
-    while(stream_to_read) {
+    while (stream_to_read) {
         stream_to_read >> string_with_pid;
         i++;
     }
@@ -118,7 +131,7 @@ logger_t MohicanServer::log_open(std::string path_to_log, std::string level_log,
 
     BOOST_LOG_TRIVIAL(info) << "Worker processes (" << i << ") successfully started";
 
-    return lg;
+    return 0;
 }
 
 int MohicanServer::server_start() {
@@ -126,21 +139,30 @@ int MohicanServer::server_start() {
         return -1;
     }
 
-    if (!this->bind_listen_sock()) {
-        return -1;
-    }
-
     if (add_work_processes() != 0) {
         return -1;
     }
 
+    std::ofstream debug;
+    debug.open("debug.txt");
+    for (auto &i : this->workers_pid) {
+        debug << i << "\n";
+    }
+    debug << getppid();
     if (fill_pid_file() == -1) {
         return -1;
     }
 
-    if (log_open(mohican_settings->level_log, ->path_to_log, true) != 0) {
+    // TODO: добавить в конфиг уровни логгирования
+    if (log_open(mohican_settings.get_log_filename(), mohican_settings.get_log_level(), true) != 0) {
         return -1;
     }
+
+
+    if (!this->bind_listen_sock()) {
+        return -1;
+    }
+
 
     process_setup_signals();  // установка нужных обработчиков сигналов
 
@@ -150,8 +172,6 @@ int MohicanServer::server_start() {
     // TODO: проверка поднятия сокета, запись в логи
 
     while (process_soft_stop != 1 && process_hard_stop != 1 && process_reload != 1) {
-
-
         if (process_soft_stop == 1) {
             server_stop(SOFT_LEVEL);
         }
@@ -225,7 +245,7 @@ int MohicanServer::server_reload() {
 }
 
 int MohicanServer::apply_config() {
-    log_open(mohican_settings->level_log, ->path_to_log, false);
+    log_open(mohican_settings.get_log_filename(), mohican_settings.get_log_level(), false);
 
     // настройка количества рабочих процессов
     count_workflows = mohican_settings.get_count_workflows();
@@ -260,7 +280,8 @@ int MohicanServer::apply_config() {
     }
 
     // TODO:Проверка апстримов
-    BOOST_LOG_TRIVIAL(warning) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] not respond to request from worker " << getpid();
+    BOOST_LOG_TRIVIAL(warning)
+        << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] not respond to request from worker " << getpid();
     BOOST_LOG_TRIVIAL(info) << "Successfully connection to upstream [SERVERNAME : Local_host] [IP : 192.89.89.89]";
     BOOST_LOG_TRIVIAL(error) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] was added to ban-list";
 }

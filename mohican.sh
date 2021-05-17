@@ -60,7 +60,7 @@ if [ $(cat "$PID_FILE") ]; then
 }
 
 create_config() {
-  cp "$DEFAULT_PATH_TO_CONFIG" mohican.conf
+  cp "$DEFAULT_PATH_TO_CONFIG" /settings/mohican.conf
 }
 
   #read -n 1 -p "(нажмите любую клавишу для продолжения)"

@@ -52,7 +52,7 @@ public:
         int add_work_processes();
         int fill_pid_file();
 
-        logger_t log_open(std::string path_to_log, std::string level_log, bool key);
+        int log_open(std::string path_to_log, std::string level_log, bool key);
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig);  // handler for soft stop

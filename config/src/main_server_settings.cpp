@@ -72,3 +72,11 @@ ServerSettings MainServerSettings::get_server() {
     return this->server;
 }
 
+std::string MainServerSettings::get_log_filename() {
+    return this->log_filename;
+}
+
+std::string MainServerSettings::get_log_level() {
+    return this->log_level;
+}
+

@@ -16,4 +16,4 @@ aux_source_directory(workers/src WORKERS_SRC)
 #add_executable(mohican.out config/${SRC} http/${SRC} mohican_server/${SRC} workers/${SRC})
 add_executable(mohican.out ${CONFIG_SRC} ${HTTP_SRC} ${MOHICAN_SERVER_SRC} ${WORKERS_SRC})
 
-target_link_libraries( test ${Boost_LIBRARIES} )
+target_link_libraries( mohican.out ${Boost_LIBRARIES} )

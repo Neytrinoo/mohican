@@ -1,4 +1,0 @@
-GiHub src
-    https://github.com/pklimczu/Weighted-Round-Robin/tree/master/cpp
-Article about balancing
-    https://selectel.ru/blog/balansirovka-nagruzki-osnovnye-algoritmy-i-metody/

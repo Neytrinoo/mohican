@@ -5,8 +5,7 @@
 #include "server_settings.h"
 #include "exceptions_config_file.h"
 #include "server_settings_exceptions.h"
-
-#define STATICS_FOLDER_PATH "../statics"
+#include "config_defines.h"
 
 const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
                                                                    "location", "servername"};

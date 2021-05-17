@@ -6,7 +6,7 @@
 class HttpBase {
  public:
     HttpBase() = default;
-    HttpBase(const std::unordered_map<std::string, std::string> &headers, int major = 0, int minor = 0);
+    HttpBase(const std::unordered_map<std::string, std::string> &headers, int major = -1, int minor = -1);
     explicit HttpBase(const HttpBase &other) = default;
     HttpBase &operator=(const HttpBase &other) = default;
     ~HttpBase() = default;
@@ -16,12 +16,7 @@ class HttpBase {
     std::unordered_map<std::string, std::string> &get_headers();
 
  protected:
-    int read_line(const int fd, char *buffer);
-
- protected:
-    int version_major_ = -1;
-    int version_minor_ = -1;
+    int version_major_;
+    int version_minor_;
     std::unordered_map<std::string, std::string> headers_;
-    static const int buf_size_ = 4096;
-    static const int read_size_ = 256;
 };

@@ -8,7 +8,22 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/attributes.hpp>
 
+
+typedef boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger_t;
+
+namespace logging = boost::log;
+namespace src = boost::log::sources;
+namespace sinks = boost::log::sinks;
+namespace keywords = boost::log::keywords;
+namespace attrs = boost::log::attributes;
 
 extern int process_soft_stop;
 extern int process_hard_stop;
@@ -37,11 +52,7 @@ public:
         int add_work_processes();
         int fill_pid_file();
 
-        int log_open();
-        void all_logs_close();
-        static int certain_log_close(std::ofstream stream_to_log);
-        int log_message(std::string server_name, log_level_t level, std::string status);
-        int start_balancing(int *number_process);
+        logger_t log_open(std::string path_to_log, std::string level_log, bool key);
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig);  // handler for soft stop

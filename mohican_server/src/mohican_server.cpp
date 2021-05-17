@@ -80,77 +80,49 @@ int MohicanServer::add_work_processes() {
     return 0;
 }
 
-int MohicanServer::log_open() {
+logger_t MohicanServer::log_open(std::string path_to_log, std::string level_log, bool key) {
 
-    stream_to_access_log.open(server.get_access_log_filename(), std::ios::app);  // std::ios::app - на добавление
-    stream_to_error_log.open(server.get_error_log_filename(), std::ios::app);
+    boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
 
-    if (!stream_to_access_log.is_open()) {
-        if (!stream_to_error_log.is_open()) {
-            std::cout << "CHECK PATHS TO LOG " << server.get_access_log_filename()
-                      << " " << server.get_error_log_filename();
-            return -1;
+    logger_t lg;
+
+    boost::log::add_file_log(
+            boost::log::keywords::auto_flush = key,
+            boost::log::keywords::file_name = path_to_log,
+            boost::log::keywords::format = "[%TimeStamp%] [%Severity%] %Message%" /*[%Uptime%]*/
+    );
+
+    if (level_log != "debug") {
+        if (level_log == "info") {
+            boost::log::core::get()->set_filter(boost::log::trivial::severity == boost::log::trivial::info);
         } else {
-            log_message(server.get_servername(), ERROR_LEVEL, "CONFIGURATION IS FALSE, ERROR PATH TO ACCESS LOG "
-                                                              + server.get_access_log_filename());
+            boost::log::core::get()->set_filter(boost::log::trivial::severity == boost::log::trivial::error);
         }
-    } else {
-        log_message(server.get_servername(), ACCESS_LEVEL, "SERVER STARTED!");
     }
 
-    return 0;
-}
+    boost::log::add_common_attributes();
 
-void MohicanServer::all_logs_close() {
-    log_message(server.get_servername(), ACCESS_LEVEL, "SERVER CLOSED!");  // TODO: main_log
+    logging::core::get()->add_global_attribute("Uptime", attrs::timer());
 
-    if (stream_to_access_log.is_open()) {
-        stream_to_access_log.close();
+    BOOST_LOG_TRIVIAL(info) << "SERVER STARTED!";
+
+    std::ifstream stream_to_read;
+    std::string string_with_pid;
+    int i;
+    stream_to_read.open("pid_file.txt", std::ios::in);
+    while(stream_to_read) {
+        stream_to_read >> string_with_pid;
+        i++;
     }
-    if (stream_to_error_log.is_open()) {
-        stream_to_error_log.close();
-    }
-}
+    i--;
 
-int MohicanServer::certain_log_close(std::ofstream stream_to_log) {
-    if (stream_to_log.is_open()) {
-        stream_to_log.close();
-        return 0;
-    }
-    return -1;
-}
+    BOOST_LOG_TRIVIAL(info) << "Worker processes (" << i << ") successfully started";
 
-int MohicanServer::log_message(std::string server_name, log_level_t level, std::string status) {
-    time_t t = time(nullptr);
-    struct tm tm;
-    localtime_r(&t, &tm);
-
-    if (level == ACCESS_LEVEL) {
-        stream_to_access_log << server_name << " " << tm.tm_year << "-" << tm.tm_mon << "-" << tm.tm_yday
-                             << "\t" << tm.tm_hour << ":" << tm.tm_min << ":" << tm.tm_sec << " " << status;
-    } else {
-        stream_to_error_log << server_name << " " << tm.tm_year << "-" << tm.tm_mon << "-" << tm.tm_mday
-                            << "\t" << tm.tm_hour << ":" << tm.tm_min << ":" << tm.tm_sec << " " << status;
-    }  // TODO:check lib
-
-    return 0;
-}
-
-int MohicanServer::start_balancing(int *number_process) {
-    if (*number_process == workers_pid.size() - 1) {
-        *number_process = 1;
-    }
-    *number_process++;
-    return *number_process;
+    return lg;
 }
 
 int MohicanServer::server_start() {
     if (daemonize() != 0) {
-        return -1;
-    }
-
-
-    if (fill_pid_file() == -1) {
         return -1;
     }
 
@@ -162,7 +134,11 @@ int MohicanServer::server_start() {
         return -1;
     }
 
-    if (log_open() != 0) {
+    if (fill_pid_file() == -1) {
+        return -1;
+    }
+
+    if (log_open(mohican_settings->level_log, ->path_to_log, true) != 0) {
         return -1;
     }
 
@@ -216,37 +192,49 @@ int MohicanServer::process_setup_signals() {
 }
 
 int MohicanServer::server_stop(stop_level_t level) {
-    log_message(server.get_servername(), ACCESS_LEVEL, "SERVER STOPPED!");
     if (level == HARD_LEVEL) {
-        all_logs_close();
-        if (getppid() == 0) {
+        BOOST_LOG_TRIVIAL(warning) << "HARD SERVER STOP...";
+        if (getppid() == 1) {
+            BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
             exit(0);
         }
     }
 
     if (level == SOFT_LEVEL) {
-        int block_socket = 0;
-        // TODO:остановка в соответствии с ключами --soft
+        BOOST_LOG_TRIVIAL(warning) << "SOFT SERVER STOP...";
+        // TODO:остановка в соответствии с ключом --soft
+        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
     }
 
-    return 0;
+    BOOST_LOG_TRIVIAL(error) << "ERROR! SERVER NOT STOPPED!";
+
+    return -1;
 }
 
 
 int MohicanServer::server_reload() {
-    all_logs_close();
+    BOOST_LOG_TRIVIAL(warning) << "SERVER RELOADING...";
+
     MainServerSettings mohican_new_settings;
     mohican_settings = mohican_new_settings;
     apply_config();
+
+    BOOST_LOG_TRIVIAL(info) << "SERVER RELOADED!";
 
     return 0;
 }
 
 int MohicanServer::apply_config() {
-    log_open();
+    log_open(mohican_settings->level_log, ->path_to_log, false);
 
     // настройка количества рабочих процессов
     count_workflows = mohican_settings.get_count_workflows();
+
+    if (count_workflows == 0) {
+        BOOST_LOG_TRIVIAL(error) << "COUNT WORK PROCESSES MUST BE MORE 0";
+        return -1;
+    }
+
     if (count_workflows > workers_pid.size() && workers_pid.size() != 1) {
         for (int i = 0; i < count_workflows - workers_pid.size(); ++i) {
             add_work_processes();
@@ -272,6 +260,9 @@ int MohicanServer::apply_config() {
     }
 
     // TODO:Проверка апстримов
+    BOOST_LOG_TRIVIAL(warning) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] not respond to request from worker " << getpid();
+    BOOST_LOG_TRIVIAL(info) << "Successfully connection to upstream [SERVERNAME : Local_host] [IP : 192.89.89.89]";
+    BOOST_LOG_TRIVIAL(error) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] was added to ban-list";
 }
 
 bool MohicanServer::bind_listen_sock() {

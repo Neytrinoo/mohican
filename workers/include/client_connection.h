@@ -9,7 +9,8 @@
 typedef enum {
     CONNECTION_PROCESSING,
     CONNECTION_TIMEOUT_ERROR,
-    CONNECTION_FINISHED
+    CONNECTION_FINISHED,
+    ERROR_WHILE_CONNECTION_PROCESSING
 } connection_status_t;
 
 class ClientConnection {
@@ -32,7 +33,8 @@ private:
         GET_REQUEST,
         FORM_HTTP_HEADER_RESPONSE,
         SEND_HTTP_HEADER_RESPONSE,
-        SEND_FILE
+        SEND_FILE,
+        ERROR
     } connection_stages_t;
 
     typedef enum {

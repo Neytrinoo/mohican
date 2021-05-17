@@ -1,16 +1,16 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include <csignal>
 #include "mohican_server.h"
 #include "http_request.h"
 
 
 int main() {
-    //MohicanServer server;
-    //server.server_start();
+    MohicanServer server;
+    server.server_start();
 
-
-
+    /*
     int listen_sock;
     MainServerSettings server("../settings/config.conf");
     ServerSettings server_settings = server.get_server();
@@ -41,9 +41,9 @@ int main() {
     worker.run();
 
 
-    MainServerSettings config_serv("../config/src/config.conf");
-    config_serv.get_server().print_properties();
-
+    //MainServerSettings config_serv("../config/src/config.conf");
+    //config_serv.get_server().print_properties();
+    */
 
     return 0;
 }

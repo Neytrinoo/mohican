@@ -23,6 +23,10 @@ ClientConnection::ClientConnection(int sock, class ServerSettings *server_settin
         server_settings) {}
 
 connection_status_t ClientConnection::connection_processing() {
+    if (this->stage == ERROR) {
+        return ERROR_WHILE_CONNECTION_PROCESSING;
+    }
+
     if (this->stage == GET_REQUEST) {
         if (this->get_request()) {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
@@ -30,7 +34,6 @@ connection_status_t ClientConnection::connection_processing() {
             // if the user does not send data for a long time, we close the connection
             // close(this->sock);
             return CONNECTION_TIMEOUT_ERROR;
-
         }
     }
 
@@ -53,7 +56,6 @@ connection_status_t ClientConnection::connection_processing() {
     if (this->stage == SEND_FILE) {
         if (this->send_file()) {
             // this->close_connection();
-            std::cout << "success connection with client sock = " << this->sock << std::endl;
             return CONNECTION_FINISHED;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             // close(this->sock);
@@ -67,7 +69,8 @@ connection_status_t ClientConnection::connection_processing() {
 bool ClientConnection::get_request() {
     char c;
     bool is_read_data = false;
-    while (read(this->sock, &c, sizeof(c)) == sizeof(c)) {
+    int result_read;
+    while ((result_read = read(this->sock, &c, sizeof(c))) == sizeof(c)) {
         this->request.push_back(c);
         if (this->request.size() >= MAX_METHOD_LENGTH) {
             this->set_method();
@@ -77,6 +80,11 @@ bool ClientConnection::get_request() {
 
     if (this->is_end_request()) {
         return true;
+    }
+
+    if (result_read == -1) {
+        this->stage = ERROR;
+        return false;
     }
 
     if (is_read_data) {
@@ -114,14 +122,24 @@ bool ClientConnection::form_http_header_response() {
 
 bool ClientConnection::send_http_header_response() {
     bool is_write_data = false;
-    while (write(this->sock, this->response.c_str() + response_pos, 1) == 1) {
+    int write_result;
+    while ((write_result = write(this->sock, this->response.c_str() + response_pos, 1)) == 1) {
         response_pos++;
         if (response_pos == this->response.size() - 1) {
             this->response.clear();
-            write(this->sock, "\r\n", 2);
+            write_result = write(this->sock, "\r\n", 2);
+            if (write_result == -1) {
+                this->stage = ERROR;
+                return false;
+            }
             return true;
         }
         is_write_data = true;
+    }
+
+    if (write_result == -1) {
+        this->stage = ERROR;
+        return false;
     }
 
     if (is_write_data) {
@@ -136,11 +154,17 @@ bool ClientConnection::send_file() {
     bool is_write_data = false;
     char c;
     int read_code;
+    int write_result;
 
     read_code = read(this->file_fd, &c, sizeof(c));
-    while (write(this->sock, &c, sizeof(c)) == sizeof(c) && read_code > 0) {
+    while ((write_result = write(this->sock, &c, sizeof(c)) == sizeof(c)) && read_code > 0) {
         read_code = read(this->file_fd, &c, sizeof(c));
         is_write_data = true;
+    }
+
+    if (write_result == -1) {
+        this->stage = ERROR;
+        return false;
     }
 
     if (read_code == 0) {
@@ -152,11 +176,6 @@ bool ClientConnection::send_file() {
     }
 
     return false;
-}
-
-
-void ClientConnection::close_connection() {
-    close(this->sock);
 }
 
 

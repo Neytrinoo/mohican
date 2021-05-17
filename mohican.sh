@@ -4,10 +4,10 @@
 ### END INIT INFO
 
 
-export MOHICANS_HOME=~/mohican
+export MOHICANS_HOME=~/prog/mohican
 export SERVER_NAME=mohican
 SERVER_STATUS="off"
-export PID_FILE=~/mohican/pid_file.txt
+export PID_FILE=~/prog/mohican/pid_file.txt
 export DEFAULT_PATH_TO_CONFIG=.mohican.conf
 
 

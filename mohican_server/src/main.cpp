@@ -14,7 +14,7 @@ int main() {
 
     /*
     int listen_sock;
-    MainServerSettings server("../settings/config.conf");
+    MainServerSettings server("../settings/mohican.conf");
     ServerSettings server_settings = server.get_server();
 
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -43,7 +43,7 @@ int main() {
     worker.run();
 
 
-    //MainServerSettings config_serv("../config/src/config.conf");
+    //MainServerSettings config_serv("../config/src/mohican.conf");
     //config_serv.get_server().print_properties();
     */
 

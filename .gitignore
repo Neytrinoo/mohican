@@ -2,6 +2,3 @@
 *.out
 .idea/
 cmake-build-debug/
-statics/img/*
-statics/htmls/*
-statics/css/*

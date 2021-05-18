@@ -1,0 +1,1446 @@
+.container {
+    margin: 0 auto;
+    background-color: #2c2c2c;    
+    position: absolute;
+    z-index: 1;
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1920px!important;
+    }
+}
+
+html {
+    overflow-x: hidden;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+}
+
+p {
+    margin-top: 0px;
+    margin-bottom: 0px!important;
+}
+
+.header {
+    height: 1536px;
+    background: url("img/header_background.jpg");
+    width: 100%;
+    position: relative;
+}
+
+.logo {
+    width: 157px;
+    height: 31px;
+    margin-left: 110px;
+    padding-top: 82px;
+    float: left;
+}
+
+.menu1 {
+    width: auto;
+    height: auto;
+    padding-top: 64px;
+    margin-left: 342px;
+}
+
+#last_li2 {
+    margin-right: 0px;
+}
+
+#last_li a {
+    margin-right: 205px;
+}
+
+.menu1 ul li {
+    list-style-type: none;
+}
+
+.menu1 ul li a {
+    font-family: "Gilroy";
+    color: #000000;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 50px;
+    float: left;
+    margin-right: 50px;
+    text-decoration: none;
+}
+
+.menu2 {
+    float: left;
+    margin-top: -15px;
+}
+
+.menu2 ul li {
+    list-style-type: none;
+    float: left;
+}
+
+.menu2 ul li a {
+    font-family: Gilroy;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 50px;
+
+    float: left;
+    margin-right: 50px;
+    text-decoration: none;
+}
+
+.it_security img {
+    float: left;
+    clear: left;
+    margin-top: 171px;
+    margin-left: 237px;
+    margin-right: 14px;
+}
+
+.for_text1 {
+    background-color: #ffffff;
+    width: 848px;
+    width: 45.3%;
+    height: 478px;
+    float: left;
+    margin-top: 112px;
+    padding-top: 75px;
+    padding-left: 35px;
+}
+
+.for_text1_head_text {
+    font-family: "Gilroy-Bold";
+    color: #000000;
+    font-size: 84px;
+    font-weight: 700;
+    line-height: 70px;
+    text-align: left;
+}
+
+.for_text1_body_text {
+    font-family: "Gilroy-Light";
+    color: #282828;
+    font-size: 28.8px;    
+    line-height: 40px;
+    margin-top: 70px;
+    text-align: left;
+}
+
+.for_text1_body_text span {
+    font-family: Gilroy;
+    color: #282828;
+    font-size: 28.8px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+}
+
+.button1 {
+    display: block;
+    width: 242px;
+    height: 69px;
+    background-image: url("img/button1.png");
+    clear: both;
+    margin-left: 395px;
+    margin-top: 4px;
+}
+
+.arrows1 {
+    margin-left: 880px;
+}
+
+.arrows1 .arrow_left {
+    display: block;
+    width: 39px;
+    height: 28px;
+    background-image: url("img/arrows_left.png");
+    float: left;
+    margin-right: 43px;
+}
+
+.arrows1 .arrow_right {
+    display: block;
+    width: 39px;
+    height: 28px;
+    background-image: url("img/arrows_right.png");
+    float: left;
+}
+
+.header_about {
+    margin-top: 187px;
+    margin-left: 500px;
+}
+
+.red_line {
+    width: 183px;
+    height: 5px;
+    background-image: url("img/red_line.png");
+
+}
+
+.text_header_about {
+    margin-top: 76px;
+}
+
+.text_header_about p {
+    font-family: "Gilroy-Regular";
+    color: #282828;
+    font-size: 21.6px;
+    font-weight: 400;
+    line-height: 30px;
+    text-align: left;
+
+}
+
+.text_header_about p span {
+    font-family: "Gilroy-SemiBold";
+    color: #282828;
+    font-size: 21.6px;
+    font-weight: 600;
+    line-height: auto;
+    text-align: left;
+}
+
+.decisions {
+    height: 900px;
+    width: 92.8%;
+    background-image: url("img/decision_background.png");
+    margin-top: 71px;
+    position: relative;
+    z-index: 3;
+}
+
+.choise {
+    margin-left: 56.1%;
+    padding-top: 81px;
+}
+
+.choise .choise1 {
+    cursor: pointer;
+    border-width: 4px;
+    border-color: #ff0000;
+    border-style: solid;
+    width: 269px;
+    height: 83px;
+    float: left;
+}
+
+.choise .choise1 p {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 72px;
+    text-align: left;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.choise .choise2 {
+    cursor: pointer;
+    border-width: 4px;
+    border-color: #e7e7e7;
+    border-style: solid;
+    width: 614px;
+    height: 83px;
+}
+
+.choise .choise2 p {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 72px;
+    text-align: left;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.for_choise1 {
+    margin-left: 980px;
+    margin-top: 139px;
+}
+
+.for_choise1 .ch1 {
+    float: left;
+    margin-right: 231px;
+}
+
+.for_choise1 .ch2 {
+    float: left;
+}
+
+.for_choise1 li {
+    list-style-type: none;
+    margin-bottom: 60px;
+}
+
+.for_choise1 a {
+    text-decoration: none;
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 26.4px;
+    font-weight: 700;
+    text-align: left;
+}
+
+#red_choise {
+    color: #ff0000;
+}
+
+.back_project {
+    position: absolute;
+    width: 1304px;
+    height: 1425px;
+    background-image: url("img/project_background.jpg");
+    margin-left: 616px;
+    margin-top: -132px;
+    z-index: 2;
+}
+
+.text_projects {
+    margin-top: 232px;
+    margin-left: 128px;
+    float: left;
+}
+
+.project_text1 {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 43.2px;
+    font-weight: 700;
+    text-align: left;
+    margin-top: 50px;
+}
+
+.button2 {
+    display: block;
+    width: 243px;
+    height: 70px;
+    background-image: url("img/button2.png");
+    margin-top: 337px;
+    float: left;
+}
+
+.arrows2 {
+    margin-top: 58px;
+    float: left;
+    clear: left;
+}
+
+.arrows2 .arrow_left {
+    display: block;
+    width: 34px;
+    height: 19px;
+    float: left;
+    background-image: url("img/arrow_left2.png");
+}
+
+.arrows2 .arrow_right {
+    display: block;
+    width: 34px;
+    height: 19px;
+    margin-left: 82px;
+    background-image: url("img/arrow_right2.png");
+
+}
+
+.project_block {
+    float: left;
+    background-color: white;
+    width: 445px;
+    height: 625px;
+    margin-right: 36px;
+    margin-top: 430px;
+}
+
+.project_block img {
+    margin-left: 102px;
+    margin-top: -26px;
+}
+
+#project_block1 {
+    margin-left: -160px;
+}
+
+.project_block .head_text {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 21.6px;
+    font-weight: 700;
+    line-height: 30px;
+    text-align: center;
+}
+
+.project_block .red_text {
+    font-family: Gilroy-Medium;
+    color: #ff0000;
+    font-size: 16.8px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.project_block .body_text {
+    font-family: "Gilroy-Regular";
+    color: #282828;
+    font-size: 16.8px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+}
+
+.project_block ul {
+    margin-left: 45px;
+}
+
+.project_block ul li {
+    font-family: "Gilroy-Regular";
+    color: #575757;
+    font-size: 14.4px;
+    font-weight: 400;
+
+    text-align: left;
+}
+
+#project_block1 .head_text {
+    margin-bottom: 93px!important;
+}
+
+#project_block1 .red_text {
+    margin-bottom: 36px!important;
+}
+
+
+#project_block2 .head_text {
+    margin-bottom: 39px!important;
+}
+
+#project_block2 .red_text {
+    margin-bottom: 35px!important;
+}
+
+#project_block2 .body_text {
+    margin-bottom: 100px!important;
+    margin-left: 43px;
+}
+
+#project_block3 .head_text {
+    margin-bottom: 152px!important;
+}
+
+#project_block3 .red_text {
+    margin-bottom: 38px!important;
+}
+
+.news {
+    margin-top: 1290px;
+    background-color: #ffffff;
+    width: 1921px;
+    height: 755px;
+}
+
+.head_photo_for_news {
+    width: 1405px;
+    height: 481px;
+    background-image: url("img/news_head_photo.png");
+    position: absolute;
+    z-index: 3;
+    margin-left: 260px;
+    margin-top: -134px;
+}
+
+.red_line2 {
+    float: left;
+    margin-top: 331px;
+    margin-right: 138px;
+}
+
+.head_photo_for_news .n1 {
+    margin-right: 416px;
+    margin-left: 120px;
+}
+
+.head_photo_for_news p {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 43.2px;
+    font-weight: 700;
+    line-height: 64px;
+    float: left;
+    margin-top: 383px;
+}
+
+.news_col {
+    padding-top: 418px;
+    margin-left: 378px;
+    float: left;
+}
+
+.news_col .news_block {
+    margin-bottom: 64px;
+}
+
+.news_col .title_news {
+    font-family: "Gilroy-Bold";
+    color: #050e20;
+    font-size: 21.6px;
+    font-weight: 700;
+    line-height: 25px;
+    text-align: left;
+}
+
+.news_col .date_news {
+    font-family: Gilroy;
+    color: #9a9a9a;
+    font-size: 14.4px;
+    font-weight: 400;
+    line-height: 25px;
+    text-align: left;
+}
+
+.place_col {
+    padding-top: 418px;
+    margin-left: 342px;
+    float: left;
+}
+
+.place_col .news_block {
+    margin-bottom: 84px;
+}
+
+.place_col .title_news {
+    font-family: Gilroy;
+    color: #050e20;
+    font-size: 21.6px;
+    font-weight: 700;
+    line-height: 25px;
+    text-align: left;
+}
+
+.place_col .date_news {
+    font-family: Gilroy;
+    color: #9a9a9a;
+    font-size: 14.4px;
+    font-weight: 400;
+    line-height: 25px;
+    text-align: left;
+}
+
+.team {
+    background-color: #f8f8f8;
+    height: 754px;
+}
+
+.team_block {
+    background-color: #ffffff;
+    width: 445px;
+    height: 395px;
+    float: left;
+    margin-top: 116px;
+    margin-right: 36px;
+}
+
+.team_block .photo {
+    margin-left: 120px;
+    margin-top: -66px;
+}
+
+#last_block {
+    margin-right: 0px;
+}
+
+.team_header_text {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 43.2px;
+    font-weight: 700;
+    padding-top: 90px;
+    text-align: center;
+}
+
+.team_block .head_text_team {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 26.4px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    margin-top: 65px;
+    text-align: center;
+}
+
+.team_block .body_text_team {
+    font-family: "Gilroy-Medium";
+    color: #585858;
+    font-size: 16.8px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 31px;
+}
+
+.team_block .icon {
+    margin-left: 48%;
+}
+
+#first_block {
+    margin-left: 258px;
+}
+
+.last_block2 {
+    margin-bottom: 0px!important;
+}
+
+.button_all_news {
+    display: block;
+    width: 243px;
+    height: 61px;
+    background-image: url("img/all_news_button.png");
+}
+
+.button_all_places {
+    display: block;
+    width: 285px;
+    height: 61px;
+    background-image: url("img/all_place_button.png");
+}
+
+.vacancies {
+    height: 849px;
+    background: url("img/vacansies_background.png") no-repeat;
+}
+
+.head_text_vacansies {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 43.2px;
+    font-weight: 700;
+    text-align: left;
+    margin-left: 628px;
+    padding-top: 212px;
+}
+
+.cities {
+    margin-left: 641px;
+    margin-top: 77px;
+}
+
+.cities ul {
+    float: left;
+}
+
+.cities ul li {
+    list-style-type: none;
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 21.6px;
+    font-weight: 700;
+    text-align: right;
+    margin-bottom: 30px;
+}
+
+#red_cities {
+    color: #ff0000;
+}
+
+.red_line3 {
+    float: left;
+    margin-left: 42px;
+    margin-top: 7px;
+}
+
+/*Начало слайдера*/
+
+#slider {
+    /*положение слайдера*/
+    position: relative;
+    text-align: center;
+    top: 10px;
+
+}
+
+.all {
+    float: left;
+    margin-top: -104px;
+    margin-left: 106px;
+}
+
+#slider {
+    /*центровка слайдера*/
+    margin: 0 auto;
+}
+
+.comment ul {
+    margin-right: 20px;
+}
+
+.comment ul li {
+    font-family: "Gilroy-Regular";
+    color: #b7b7b7;
+    font-size: 21.6px;
+    font-weight: 400;
+    text-align: left;
+    float: none;
+    clear: both;
+    margin-bottom: 35px;
+    list-style-type: none;
+}
+
+#slides article {
+    /*все изображения справа друг от друга*/
+    height: 400px;
+    float: left;
+}
+
+#slides .image {
+    /*устанавливает общий размер блока с изображениями*/
+    width: 10000px;
+}
+
+#overflow {
+    /*сркывает все, что находится за пределами этого блока*/
+    width: 100%;
+    overflow: hidden;
+}
+
+
+#desktop:checked ~ #slider {
+    /*размер всего слайдера*/
+    max-width: 550px;
+    /*максимальнная длинна*/
+}
+
+/*настройка переключения и положения для левой стрелки*/
+
+/*если свич1-5 активны, то идет обращение к лейблу из блока с id контролс*/
+
+#switch1:checked ~ #controls label:nth-child(5) {
+    background: url('img/arrow_left3.png') no-repeat;
+    /*заливка фона картинкой без повторений*/
+    float: left;
+    margin: 65px 0 0 2px;
+    /*сдвиг влево*/
+    display: block;
+    height: 68px;
+    width: 68px;
+}
+
+#switch3:checked ~ #controls label:nth-child(1) {
+    background: url('img/arrow_right3.png') no-repeat;
+    float: right;
+    border-radius: 50%;
+    box-shadow: 1px 3px 14px 0px rgba(20, 20, 21, 0.08);
+    margin: 65px 310px 0 0;
+    /*сдвиг вправо*/
+    display: block;
+    height: 48px;
+    width: 48px;
+}
+
+#switch2:checked ~ #controls label:nth-child(1),
+#switch3:checked ~ #controls label:nth-child(2) {
+    background: url('img/arrow_left3.png') no-repeat;
+    /*заливка фона картинкой без повторений*/
+    float: left;
+    margin: 65px 0 0 2px;
+    /*сдвиг влево*/
+    display: block;
+    height: 68px;
+    width: 68px;
+}
+
+/*настройка переключения и положения для правой стрелки*/
+
+#switch1:checked ~ #controls label:nth-child(2),
+#switch2:checked ~ #controls label:nth-child(3) {
+    background: url('img/arrow_right3.png') no-repeat;
+    /*заливка фона картинкой без повторений*/
+    float: right;
+    margin: 65px 290px 0 0;
+    /*сдвиг вправо*/
+    display: block;
+    height: 68px;
+    width: 68px;
+}
+
+label,
+a {
+    /*при наведении на стрелки или переключатели - курсор изменится*/
+    cursor: pointer;
+}
+
+.all input {
+    /*скрывает стандартные инпуты (чекбоксы) на странице*/
+    display: none;
+}
+
+/*позиция изображения при активации переключателя*/
+
+#switch1:checked ~ #slides .image {
+    margin-left: 0;
+}
+
+#switch2:checked ~ #slides .image {
+    margin-left: -100%;
+}
+
+#switch3:checked ~ #slides .image {
+    margin-left: -205%;
+}
+
+#switch4:checked ~ #slides .image {
+    margin-left: -300%;
+}
+
+#switch5:checked ~ #slides .image {
+    margin-left: -400%;
+}
+
+#controls {
+    /*положение блока всех управляющих элементов*/
+    width: 100%;
+    height: 50px;
+    margin-top: 60px;
+    float: left;
+}
+
+#active label {
+    border-radius: 50%;
+    background-color: rgba(176, 176, 176, 0.2);
+    width: 13px;
+    height: 13px;
+    margin-right: 11px;
+    float: left;
+    cursor: pointer;
+}
+
+#active {
+    /*расположение блока с переключателями*/
+    margin: 129px 0 0;
+    margin-left: 62px;
+    text-align: center;
+}
+
+#active label:hover {
+    /*поведение чекбокса при наведении*/
+    background-color: #ff0000;
+    /*выполнение в любом случае*/
+}
+
+/*цвет активного лейбла при активации чекбокса*/
+
+#switch1:checked ~ #active label:nth-child(1),
+#switch2:checked ~ #active label:nth-child(2),
+#switch3:checked ~ #active label:nth-child(3),
+#switch4:checked ~ #active label:nth-child(4),
+#switch5:checked ~ #active label:nth-child(5) {
+    background-color: #ff0000;
+}
+
+#slides .image {
+    /*анимация пролистывания изображений*/
+    transition: all 800ms cubic-bezier(0.770, 0.000, 0.175, 1.000);
+}
+
+#controls label:hover {
+    /*прозрачность стрелок при наведении*/
+    opacity: 0.6;
+}
+
+#controls label {
+    /*прозрачность стрелок при отводе курсора*/
+    transition: opacity 0.2s ease-out;
+}
+
+
+/*Конец слайдера*/
+
+.work_with_us {
+    background-color: #ffffff;
+    height: 889px;
+}
+
+.head_text_work_with_us p {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 43.2px;
+    font-weight: 700;
+    line-height: 64px;
+    text-align: left;
+    margin-left: 528px;
+    padding-top: 143px;
+}
+
+.head_text_work_with_us p span {
+    border-bottom: 5px solid red;
+}
+
+.about_work_with_us {
+    float: left;
+    margin-right: 60px;
+    margin-top: 88px;
+}
+
+.about_work_with_us .head_text {
+    font-family: "Gilroy-Bold";
+    color: #282828;
+    font-size: 26.4px;
+    font-weight: 700;
+    margin-top: 44px;
+    text-align: left;
+}
+
+.about_work_with_us .body_text {
+    font-family: "Gilroy-Regular";
+    color: #8e8e8e;
+    font-size: 21.6px;
+    font-weight: 400;
+    text-align: left;
+    margin-top: 44px;
+}
+
+#first_block1 {
+    margin-left: 258px;
+}
+
+.last_block1 {
+    margin-right: 0px;
+}
+
+.academy_redsys {
+    height: 1170px;
+    background: url('img/academy_background.png') no-repeat;
+}
+
+.academy_img1 {
+    margin-left: 347px;
+    margin-top: -180px;
+}
+
+.academy_img1 .img1 {
+    float: left;
+    width: 515px;
+    height: 601px;
+    background: url('img/academy_img1.png');
+}
+
+.academy_img1 .logo2 {
+    float: left;
+    margin-left: 119px;
+    margin-top: 33px;
+}
+
+.academy_redsys .text_about {
+    float: left;
+    margin-left: 120px;
+    margin-top: 152px;
+}
+
+.academy_redsys .text_about p span {
+    font-family: "Gilroy-Bold";
+    color: white;
+    font-size: 21.6px;
+    font-weight: 400;
+    line-height: 64px;
+    text-align: left;
+}
+
+.academy_redsys .text_about p {
+    font-family: "Gilroy-Regular";
+    color: #bfbfbf;
+    font-size: 21.6px;
+    font-weight: 400;
+    text-align: left;
+}
+#academy_img2 {
+    width: 501px;
+    height: 601px;
+    background: url('img/academy_img2.png');
+}
+.academy_img2 {
+    clear: left;
+    padding-top: 166px;
+    margin-left: 347px;
+}
+
+.academy_img2 .head_text {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 32px!important;
+}
+
+.academy_img2 .body_text {
+    font-family: "Gilroy-Regular";
+    color: #bfbfbf;
+    font-size: 21.6px;
+    font-weight: 400;
+
+}
+
+.academy_img2 ul li {
+    font-family: "Gilroy-Regular";
+    color: #bfbfbf;
+    font-size: 21.6px;
+    font-weight: 400;
+}
+
+#last_li2 {
+    margin-bottom: 60px;
+}
+
+.our_clients {
+    background-color: #323232;
+    height: 430px;
+}
+
+.acad_img2 {
+    float: right;
+}
+
+.acad_img2 .button4 {    
+    float: left;
+    margin-top: -35px;
+    margin-right: 538px;
+    cursor: pointer;
+}
+
+#academy_img2 {
+    margin-top: -463px;
+    float:right;
+    margin-right: 78px;
+}
+
+.clients {
+    clear: both;
+    padding-top: 127px;
+    margin-left: 260px;
+}
+
+.clients img {
+    float: left;
+    margin-right: 63px;
+    opacity: 0.4;
+    margin-top: 15px;
+}
+
+.clients .head_text {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 64px;
+    text-align: left;
+    float: left;
+    margin-right: 72px;
+}
+
+.arrow_left4 {
+    display: block;
+    width: 39px;
+    height: 21px;
+    float: left;
+    margin-right: 56px;
+    margin-top: 24px;
+    background-image: url("img/arrow_left4.png");
+}
+
+.arrow_right4 {
+    display: block;
+    width: 39px;
+    height: 21px;
+    float: left;
+    margin-top: 24px;
+    background-image: url("img/arrow_right4.png");
+}
+
+.our_ofices {
+    height: 849px;
+    background: url('img/our_offices.png') no-repeat;
+    margin-top: 52px;
+    margin-right: 14px;
+}
+
+.our_ofices p {
+    font-family: "Gilroy-SemiBold";
+    color: #ffffff;
+    margin-left: 20px;
+    font-size: 16.8px;
+    font-weight: 600;
+
+}
+
+.citi_ofice {
+    position: absolute;
+}
+
+.citi_ofice .circle {
+    border-radius: 50%;
+    background-color: #ff0000;
+    width: 16px;
+    float: left;
+    height: 15px;
+}
+
+#citi_ofice1 {
+    margin-left: 29%;
+    margin-top: 20%;
+}
+
+#citi_ofice2 {
+    margin-left: 30%;
+    margin-top: 21.5%;
+}
+
+#citi_ofice3 {
+    margin-left: 31%;
+    margin-top: 24%;
+}
+
+#citi_ofice4 {
+    margin-left: 25.8%;
+    margin-top: 26%;
+}
+
+#citi_ofice5 {
+    margin-left: 44.5%;
+    margin-top: 31%;
+}
+
+.about_ofice {
+
+    width: 297px;
+    height: 225px;
+    background: url('img/citi_icon_cbout.png') no-repeat;
+    padding-top: 27px;
+    padding-left: 29px;
+    display: none;
+}
+
+.about_ofice .head_text {
+    font-family: Gilroy;
+    color: #282828;
+    font-size: 21.6px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.about_ofice .address {
+    font-family: Gilroy;
+    color: #282828;
+    font-size: 19.2px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.about_ofice .tel {
+    font-family: Gilroy;
+    color: #282828;
+    font-size: 19.2px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.about_ofice .mail {
+    font-family: Gilroy;
+    color: #282828;
+    font-size: 19.2px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.about_ofice .mail span {
+    font-family: Gilroy;
+    color: red;
+    font-size: 19.2px;
+    font-weight: 500;
+    text-align: left;
+}
+
+#about_ofice1 {
+    margin-left: 21.5%;
+    margin-top: 8%;
+}
+
+#about_ofice2 {
+    margin-left: 22.5%;
+    margin-top: 10%;
+}
+
+#about_ofice3 {
+    margin-left: 23.5%;
+    margin-top: 12%;
+}
+
+#about_ofice4 {
+    margin-left: 18%;
+    margin-top: 14%;
+}
+
+#about_ofice5 {
+    margin-left: 37%;
+    margin-top: 19%;
+}
+
+footer {
+    background-color: #131313;
+    height: 540px;
+}
+
+footer ul {
+    float: left;
+    margin-right: 77px;
+    padding-top: 137px;
+}
+
+footer ul li {
+    list-style-type: none;
+    margin-bottom: 15px;
+}
+
+footer ul li a {
+    font-family: "Gilroy-Medium";
+    color: #767676;
+    font-size: 16.8px;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+}
+
+footer ul li a:hover {
+    text-decoration: none;
+}
+
+.head_company_text {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 21.6px;
+    font-weight: 500;
+    text-align: left;
+    margin-bottom: 34px;
+}
+
+#first_ul {
+    margin-left: 258px;
+}
+
+.contacts .grey_text {
+    font-family: "Gilroy-Medium";
+    color: #767676;
+    font-size: 16.8px;
+    font-weight: 500;
+    text-align: right;
+}
+
+.contacts {
+    float: right;
+    margin-right: 261px;
+}
+
+.contacts li {
+    margin-bottom: 23px;
+}
+
+.contacts li span {
+    font-family: "Gilroy-Bold";
+    color: #fe0000;
+    font-size: 22.8px;
+    font-weight: 400;
+    text-align: right;
+}
+
+.contacts .white_text {
+    font-family: "Gilroy-Bold";
+    color: #ffffff;
+    font-size: 22.8px;
+    font-weight: 400;
+    text-align: right;
+}
+
+.contacts .white_text2 {
+    font-family: "Gilroy-Medium";
+    color: #ffffff;
+    font-size: 16.8px;
+    font-weight: 400;
+    text-align: right;
+}
+
+@media (min-width: 1500px) and (max-width: 1618px) {
+    .for_text1_head_text {
+        font-size: 74px
+    }
+}
+
+/*Начало адаптива*/
+
+@media (min-width: 0px) and (max-width: 1500px) {
+    .header {
+        background: url("img/header_background2.jpg") no-repeat;
+    }
+    #last_li a {
+        margin-right: 150px;
+    }
+    .for_text1_head_text {
+        font-size: 64px;
+    }
+    .for_text1_body_text {
+        font-size: 25px;
+    }
+    .arrows1 {
+        margin-left: 1080px;
+        margin-top: -200px;
+    }
+    .header_about {
+        margin-top: 387px;
+        ;
+    }
+    .choise {
+        margin-left: 46.1%;
+    }
+    .for_choise1 {
+        margin-left: 590px;
+    }
+    #project_block3 {
+        float: none;
+        margin-top: 1100px;
+        margin-left: 6%;
+    }
+    .news {
+        margin-top: 1790px;
+    }
+    .back_project {
+        height: 1825px;
+    }
+    .head_photo_for_news {
+        background: url('img/news_head_photo2.png') no-repeat;
+        width: 983px;
+        height: 336px;
+    }
+    .head_photo_for_news p {
+        margin-top: 250px;
+    }
+    .head_photo_for_news .n1 {
+        margin-right: 136px;
+    }
+    .red_line2 {
+        margin-top: 231px;
+    }
+    .news_col {
+        margin-left: 178px;
+        padding-top: 318px;
+    }
+    .place_col {
+        padding-top: 318px;
+    }
+    .button_all_news {
+        margin-top: 70px;
+    }
+    .button_all_places {
+        margin-top: 70px;
+    }
+    .team_block {
+        width: 311.5px;
+    }
+    .team_block .photo {
+        margin-left: 54px;
+    }
+    .team_block .body_text_team {
+        margin-bottom: 70px!important;
+    }
+    .vacancies {
+        background: url('img/vacansies_background2.png') no-repeat;
+    }
+    .head_text_vacansies {
+        font-size: 30.1px;
+        padding-top: 148.4px;
+        margin-left: 440px;
+    }
+    .cities ul li {
+        font-size: 19.2px;
+    }
+    .cities {
+        margin-left: 440px;
+        margin-top: 54px;
+    }
+    #first_block1 {
+        margin-left: 30px;
+    }
+    .head_text_work_with_us p {
+        margin-left: 20%;
+    }
+    #academy_img2 {
+        width: 351px;
+        height: 421px;
+        background: url('img/academy_img22.png');
+        margin-top: -324px;
+    }
+    .academy_img1 .img1 {
+        width: 360px;
+        height: 421px;
+        background: url('img/academy_img12.png'); 
+    }
+    .acad_img2 .button4 {
+        margin-right: 310px;
+    }
+    .academy_img2 {
+        padding-top: 116px;
+        margin-left: 243px;
+    }
+    .clients {
+        margin-left: 60px;
+    }
+    .academy_redsys .text_about {
+        margin-left: 84px;
+    }
+    .clients .head_text {
+        font-size: 30px;
+    }
+    .our_ofices {
+        height: 637px;
+        background: url('img/our_offices2.png') no-repeat;
+    }
+    #citi_ofice1  {
+        margin-left: 32.3%;
+        margin-top: 19%;
+    }
+    #citi_ofice2 {
+        margin-left: 33.3%;
+        margin-top: 21.5%;
+    }
+    #citi_ofice3 {
+        margin-left: 34.5%;
+        margin-top: 23.5%;
+    }
+    #citi_ofice4 {
+        margin-left: 29.5%;
+        margin-top: 26%;
+    }
+    #citi_ofice5 {
+        margin-left: 47.5%;
+        margin-top: 31%;
+    }
+    #first_ul {
+        margin-left: 190px;
+    }
+    footer ul {
+        margin-right: 57.75px;
+    }
+    .contacts {
+        margin-right: 82.7px;
+    }
+    .for_choise1 .ch1 {
+        margin-right: 100px;
+    }
+    .place_col {
+        margin-left: 162px;
+    }
+    .all {
+        margin-top: -174px;
+        margin-left: 1px;
+    }
+    .about_work_with_us .body_text {
+        font-size: 18.6px;
+    }
+}

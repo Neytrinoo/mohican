@@ -17,13 +17,13 @@ get_pid() {
 }
 
 start() {
-	if [ $SERVER_STATUS = 'on' ]; then
+	if [ $SERVER_STATUS = "on" ]; then
 		echo "Server already started"
 		exit 1
-		else
-	echo "Starting $SERVER_NAME Server..."
-	"$MOHICANS_HOME"/mohican.out
-	SERVER_STATUS="on"
+	else
+	  echo "Starting $SERVER_NAME Server..."
+	  "$MOHICANS_HOME"/mohican.out
+	  SERVER_STATUS="on"
 		exit 0
 	fi	
 }
@@ -52,10 +52,10 @@ reload() {
 
 status() {
 # shellcheck disable=SC2046
-if [ $(head -n 1 "$PID_FILE") ]; then
-	echo "$SERVER_NAME is running!!"
+  if [ $(head -n 1 "$PID_FILE") ]; then
+	  echo "$SERVER_NAME is running!!"
 	else
-	echo "$SERVER_NAME is down!!"
+	  echo "$SERVER_NAME is down!!"
 	fi
 }
 

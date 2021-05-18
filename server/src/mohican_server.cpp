@@ -152,6 +152,8 @@ int MohicanServer::server_start() {
     if (process_reload == 1) {
         server_reload();
     }
+
+    return 0;
 }
 
 void MohicanServer::sighup_handler(int sig) {
@@ -257,6 +259,8 @@ int MohicanServer::apply_config() {
         << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] not respond to request from worker " << getpid();
     BOOST_LOG_TRIVIAL(info) << "Successfully connection to upstream [SERVERNAME : Local_host] [IP : 192.89.89.89]";
     BOOST_LOG_TRIVIAL(error) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] was added to ban-list";
+
+    return 0;
 }
 
 bool MohicanServer::bind_listen_sock() {

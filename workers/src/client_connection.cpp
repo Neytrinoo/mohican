@@ -19,7 +19,7 @@
 
 #define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
-#define PAGE_404 "statics/404_page/404.html" // потом изменить
+#define PAGE_404 "public/404.html" // потом изменить
 #define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
 
 ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings) : sock(sock), server_settings(

@@ -52,7 +52,7 @@ reload() {
 
 status() {
 # shellcheck disable=SC2046
-if [ $(cat "$PID_FILE") ]; then
+if [ $(head -n 1 "$PID_FILE") ]; then
 	echo "$SERVER_NAME is running!!"
 	else
 	echo "$SERVER_NAME is down!!"

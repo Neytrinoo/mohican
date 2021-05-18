@@ -92,7 +92,7 @@ create_config() {
       fi
     ;;
 
-	  *) echo "Usage : <start|stop|reload|status>";
+	  *) echo "Usage : <start|stop|reload|status|create config>";
 	  ;;
   esac
 exit 0

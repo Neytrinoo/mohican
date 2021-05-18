@@ -25,6 +25,8 @@ public:
 
     connection_status_t connection_processing();
 
+    clock_t get_timeout();
+
 private:
     int sock;
     clock_t timeout;

@@ -31,7 +31,7 @@ start() {
 stop_soft() {
 	echo "Stopping Mohicans Server..."
 	get_pid
-	kill -1 "PID_MASTER_PROCESS"
+	kill -1 "$PID_MASTER_PROCESS"
 	echo "stop soft"
 }
 

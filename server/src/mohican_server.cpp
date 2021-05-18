@@ -140,20 +140,17 @@ int MohicanServer::server_start() {
     int number_process = 1;
     std::string status = "not_exited";
 
-    // TODO: проверка поднятия сокета, запись в логи
+    while (process_soft_stop != 1 && process_hard_stop != 1 && process_reload != 1);
+    if (process_soft_stop == 1) {
+        server_stop(SOFT_LEVEL);
+    }
 
-    while (process_soft_stop != 1 && process_hard_stop != 1 && process_reload != 1) {
-        if (process_soft_stop == 1) {
-            server_stop(SOFT_LEVEL);
-        }
+    if (process_hard_stop == 1) {
+        server_stop(HARD_LEVEL);
+    }
 
-        if (process_hard_stop == 1) {
-            server_stop(HARD_LEVEL);
-        }
-
-        if (process_reload == 1) {
-            server_reload();
-        }
+    if (process_reload == 1) {
+        server_reload();
     }
 }
 
@@ -185,16 +182,21 @@ int MohicanServer::process_setup_signals() {
 int MohicanServer::server_stop(stop_level_t level) {
     if (level == HARD_LEVEL) {
         BOOST_LOG_TRIVIAL(warning) << "HARD SERVER STOP...";
-        if (getppid() == 1) {
-            BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
-            exit(0);
+        close(this->listen_sock);
+        for (auto &i : this->workers_pid) {
+            kill(i, SIGINT);
         }
+        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
+        exit(0);
     }
 
     if (level == SOFT_LEVEL) {
         BOOST_LOG_TRIVIAL(warning) << "SOFT SERVER STOP...";
-        // TODO:остановка в соответствии с ключом --soft
-        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
+        close(this->listen_sock);
+        for (auto &i : this->workers_pid) {
+            kill(i, SIGHUP);
+        }
+        exit(0);
     }
 
     BOOST_LOG_TRIVIAL(error) << "ERROR! SERVER NOT STOPPED!";

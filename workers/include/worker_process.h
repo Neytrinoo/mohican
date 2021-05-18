@@ -17,11 +17,20 @@ public:
 
     ~WorkerProcess() = default;
 
+    void setup_sighandlers();
+
+    static void sighup_handler(int sig);
+    static void sigint_handler(int sig);
+
 private:
+    typedef enum {
+        INFO_HARD_STOP_DONE,
+        INFO_SOFT_STOP_START,
+        INFO_SOFT_STOP_DONE
+    } log_messages_t;
+
     class ServerSettings *server_settings;
     std::map<int, class ClientConnection> client_connections;
     int listen_sock;
-    // std::vector<int> client_sockets;  // vector of file descriptors of the sockets of the clients being processed
-
-    // Network net{};  // Передаем класс Network для установки соединения с  апстримом
+    void write_to_log(log_messages_t log_type);
 };

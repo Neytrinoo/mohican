@@ -211,39 +211,42 @@ bool ClientConnection::is_end_request() {
 void ClientConnection::write_to_log(log_messages_t log_type, std::string url, std::string method) {
     switch (log_type) {
         case INFO_NEW_CONNECTION:
-            BOOST_LOG_TRIVIAL(info) << "New connection    [METHOD " << method << "]    [URL "
+            BOOST_LOG_TRIVIAL(info) << "New connection [METHOD " << method << "] [URL "
                                     << url
-                                    << "]    [WORKER PID " << getpid() << "]    [CLIENT SOCKET " << this->sock
+                                    << "] [WORKER PID " << getpid() << "] [CLIENT SOCKET " << this->sock
                                     << "]";
             break;
         case INFO_CONNECTION_FINISHED:
-            BOOST_LOG_TRIVIAL(info) << "Connection closed    [WORKER PID " << getpid() << "]" << "    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(info) << "Connection finished successfully [WORKER PID " << getpid() << "]" << " [CLIENT SOCKET "
                                     << this->sock << "]";
             break;
         case ERROR_404_NOT_FOUND:
-            BOOST_LOG_TRIVIAL(error) << "404 NOT FOUND    [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "404 NOT FOUND [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
         case ERROR_TIMEOUT:
-            BOOST_LOG_TRIVIAL(error) << "TIMEOUT ERROR   [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "TIMEOUT ERROR [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
         case ERROR_READING_REQUEST:
-            BOOST_LOG_TRIVIAL(error) << "Reading request error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "Reading request error [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
         case ERROR_SEND_RESPONSE:
-            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
         case ERROR_SEND_FILE:
-            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
         case ERROR_BAD_REQUEST:
-            BOOST_LOG_TRIVIAL(error) << "Bad request error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(error) << "Bad request error [WORKER PID " << getpid() << "] [CLIENT SOCKET "
                                      << this->sock << "]";
             break;
     }
+}
 
+clock_t ClientConnection::get_timeout() {
+    return this->timeout;
 }

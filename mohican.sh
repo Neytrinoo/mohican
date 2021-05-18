@@ -4,10 +4,10 @@
 ### END INIT INFO
 
 
-export MOHICANS_HOME=~/prog/mohican
+export MOHICANS_HOME=.
 export SERVER_NAME=mohican
 SERVER_STATUS="off"
-export PID_FILE=~/prog/mohican/pid_file.txt
+export PID_FILE=pid_file.txt
 export DEFAULT_PATH_TO_CONFIG=.mohican.conf
 
 
@@ -38,9 +38,9 @@ stop_soft() {
 stop_hard() {
   echo "Stopping Mohicans Server..."
   get_pid
-  :> "$PID_FILE"
 	kill -2 "$PID_MASTER_PROCESS"
 	echo "stop hard"
+	:> "$PID_FILE"
 }
 
 reload() {
@@ -60,7 +60,7 @@ if [ $(cat "$PID_FILE") ]; then
 }
 
 create_config() {
-  cp "$DEFAULT_PATH_TO_CONFIG" /settings/mohican.conf
+  cp "$DEFAULT_PATH_TO_CONFIG" settings/mohican.conf
 }
 
   #read -n 1 -p "(нажмите любую клавишу для продолжения)"

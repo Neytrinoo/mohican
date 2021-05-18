@@ -13,7 +13,7 @@ private:
     std::string access_log_file;
     std::string error_log_file;
     ServerSettings server;
-    std::string log_filename = "../mohican.log";
+    std::string log_filename = "mohican.log";
     std::string log_level = "debug";
 
     bool is_access_log_file = false;

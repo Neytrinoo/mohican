@@ -17,9 +17,9 @@ class ClientConnection {
 public:
     ClientConnection(int sock, class ServerSettings *server_settings);
 
-    ClientConnection& operator=(const ClientConnection& other) = default;
+    ClientConnection &operator=(const ClientConnection &other) = default;
 
-    ClientConnection(const ClientConnection& other) = default;
+    ClientConnection(const ClientConnection &other) = default;
 
     ClientConnection() = default;
 
@@ -42,6 +42,17 @@ private:
         GET,
         POST,
     } methods_t;
+
+    typedef enum {
+        INFO_NEW_CONNECTION,
+        INFO_CONNECTION_FINISHED,
+        ERROR_404_NOT_FOUND,
+        ERROR_TIMEOUT,
+        ERROR_READING_REQUEST,
+        ERROR_SEND_RESPONSE,
+        ERROR_SEND_FILE,
+        ERROR_BAD_REQUEST
+    } log_messages_t;
 
     connection_stages_t stage = GET_REQUEST;
 
@@ -68,5 +79,5 @@ private:
 
     void set_method();
 
-    void close_connection();
+    void write_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
 };

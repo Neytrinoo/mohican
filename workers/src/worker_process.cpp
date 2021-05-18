@@ -40,12 +40,10 @@ void WorkerProcess::run() {
                 ev.events = EPOLLIN | EPOLLET;
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
                 this->client_connections[client] = ClientConnection(client, this->server_settings);
-                std::cout << "connection send, client sock = " << client << std::endl;
             } else {  // if the event happened on a client socket
                 connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
                 if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR ||
                     connection_status == ERROR_WHILE_CONNECTION_PROCESSING) {
-                    std::cout << "something wrong, client sock = " << events[i].data.fd << std::endl;
                     this->client_connections.erase(events[i].data.fd);
                     close(events[i].data.fd);
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);

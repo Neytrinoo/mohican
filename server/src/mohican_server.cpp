@@ -9,7 +9,7 @@
 #include "mohican_server.h"
 
 #define BACKLOG 128
-#define CONFIG_FILE_PATH "../settings/mohican.conf"
+#define CONFIG_FILE_PATH "settings/mohican.conf"
 
 
 int process_soft_stop = 0;
@@ -43,16 +43,6 @@ int MohicanServer::daemonize() {
 }
 
 int MohicanServer::fill_pid_file() {
-    /*
-    std::ofstream debug;
-    debug.open("debug.txt");
-    debug << getppid();
-    debug.close();
-    */
-    if (getppid() != 1 && getppid() != 0) {
-        return 0;
-    }
-
     std::ofstream stream_to_pid_file;
     stream_to_pid_file.open("pid_file.txt", std::ios::out);
 
@@ -64,8 +54,6 @@ int MohicanServer::fill_pid_file() {
     for (auto i : workers_pid) {
         stream_to_pid_file << i << std::endl;
     }
-
-
 
     stream_to_pid_file.close();
 
@@ -119,18 +107,6 @@ int MohicanServer::log_open(std::string path_to_log, std::string level_log, bool
 
     BOOST_LOG_TRIVIAL(info) << "SERVER STARTED!";
 
-    std::ifstream stream_to_read;
-    std::string string_with_pid;
-    int i;
-    stream_to_read.open("pid_file.txt", std::ios::in);
-    while (stream_to_read) {
-        stream_to_read >> string_with_pid;
-        i++;
-    }
-    i--;
-
-    BOOST_LOG_TRIVIAL(info) << "Worker processes (" << i << ") successfully started";
-
     return 0;
 }
 
@@ -139,17 +115,8 @@ int MohicanServer::server_start() {
         return -1;
     }
 
-    if (add_work_processes() != 0) {
-        return -1;
-    }
 
-    std::ofstream debug;
-    debug.open("debug.txt");
-    for (auto &i : this->workers_pid) {
-        debug << i << "\n";
-    }
-    debug << getppid();
-    if (fill_pid_file() == -1) {
+    if (!this->bind_listen_sock()) {
         return -1;
     }
 
@@ -158,11 +125,15 @@ int MohicanServer::server_start() {
         return -1;
     }
 
-
-    if (!this->bind_listen_sock()) {
+    if (add_work_processes() != 0) {
         return -1;
     }
 
+    if (fill_pid_file() == -1) {
+        return -1;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Worker processes (" << this->workers_pid.size() << ") successfully started";
 
     process_setup_signals();  // установка нужных обработчиков сигналов
 

@@ -1,5 +1,0 @@
-GET /about.html HTTP/1.0
-Host: mail.ru
-User-Agent: Chromium/68.0
-Content-Type: html/text
-

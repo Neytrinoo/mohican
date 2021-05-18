@@ -1,3 +1,3 @@
 #pragma once
 
-#define STATICS_FOLDER_PATH "../statics"
+#define STATICS_FOLDER_PATH "statics"

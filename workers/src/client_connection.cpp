@@ -5,15 +5,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <exception>
-#include <fstream>
-#include <iostream>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/attributes.hpp>
 
 
 #include "client_connection.h"
@@ -23,7 +19,7 @@
 
 #define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
-#define PAGE_404 "../statics/404_page/404.html" // потом изменить
+#define PAGE_404 "statics/404_page/404.html" // потом изменить
 #define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
 
 ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings) : sock(sock), server_settings(
@@ -39,8 +35,7 @@ connection_status_t ClientConnection::connection_processing() {
             this->stage = FORM_HTTP_HEADER_RESPONSE;
 
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
-            // if the user does not send data for a long time, we close the connection
-            // close(this->sock);
+            this->write_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
         }
     }
@@ -55,18 +50,17 @@ connection_status_t ClientConnection::connection_processing() {
         if (this->send_http_header_response()) {
             this->stage = SEND_FILE;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
-            // if the user cannot accept the data for a long time we close the connection
-            // close(this->sock);
+            this->write_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
         }
     }
 
     if (this->stage == SEND_FILE) {
         if (this->send_file()) {
-            // this->close_connection();
+            this->write_to_log(INFO_CONNECTION_FINISHED);
             return CONNECTION_FINISHED;
         } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
-            // close(this->sock);
+            this->write_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
         }
     }
@@ -104,11 +98,18 @@ bool ClientConnection::get_request() {
 
 
 bool ClientConnection::form_http_header_response() {
-    HttpRequest http_request(this->request);
+    HttpRequest http_request;
+    try {
+        http_request = HttpRequest(this->request);
+    } catch (std::exception &e) {
+        this->write_to_log(ERROR_BAD_REQUEST);
+        // TODO: добавить обработку BAD REQUEST запроса (какой-то дефолтный ответ и страничка)
+        return true;
+    }
+
+
     std::string url = http_request.get_url();
-
-    BOOST_LOG_TRIVIAL(info) << "New connection   [URL : " << url << "]   [WORKER PID : " << getpid() << "]";
-
+    this->write_to_log(INFO_NEW_CONNECTION, url, http_request.get_method());
     HttpResponse http_response;
     try {
         std::string root = this->server_settings->get_root(url);
@@ -116,11 +117,12 @@ bool ClientConnection::form_http_header_response() {
         this->file_fd = open((root + url).c_str(), O_RDONLY);
         if (this->file_fd == -1) {
             this->file_fd = open(PAGE_404, O_RDONLY);
+            this->write_to_log(ERROR_404_NOT_FOUND);
         }
     } catch (std::exception &e) {
-        // добавить запись в error log
         http_response = http_handler(http_request);
-        this->file_fd = open(PAGE_404, O_RDONLY); // добавить дефолтную 404 html страничку
+        this->file_fd = open(PAGE_404, O_RDONLY);
+        this->write_to_log(ERROR_404_NOT_FOUND);
     }
     this->response = http_response.get_string();
     this->request.clear();
@@ -140,6 +142,7 @@ bool ClientConnection::send_http_header_response() {
             write_result = write(this->sock, "\r\n", 2);
             if (write_result == -1) {
                 this->stage = ERROR;
+                this->write_to_log(ERROR_SEND_RESPONSE);
                 return false;
             }
             return true;
@@ -147,8 +150,10 @@ bool ClientConnection::send_http_header_response() {
         is_write_data = true;
     }
 
+
     if (write_result == -1) {
         this->stage = ERROR;
+        this->write_to_log(ERROR_SEND_RESPONSE);
         return false;
     }
 
@@ -174,6 +179,7 @@ bool ClientConnection::send_file() {
 
     if (write_result == -1) {
         this->stage = ERROR;
+        this->write_to_log(ERROR_SEND_FILE);
         return false;
     }
 
@@ -200,4 +206,44 @@ void ClientConnection::set_method() {
 bool ClientConnection::is_end_request() {
     size_t pos = this->request.find("\r\n\r\n");
     return pos != std::string::npos;
+}
+
+void ClientConnection::write_to_log(log_messages_t log_type, std::string url, std::string method) {
+    switch (log_type) {
+        case INFO_NEW_CONNECTION:
+            BOOST_LOG_TRIVIAL(info) << "New connection    [METHOD " << method << "]    [URL "
+                                    << url
+                                    << "]    [WORKER PID " << getpid() << "]    [CLIENT SOCKET " << this->sock
+                                    << "]";
+            break;
+        case INFO_CONNECTION_FINISHED:
+            BOOST_LOG_TRIVIAL(info) << "Connection closed    [WORKER PID " << getpid() << "]" << "    [CLIENT SOCKET "
+                                    << this->sock << "]";
+            break;
+        case ERROR_404_NOT_FOUND:
+            BOOST_LOG_TRIVIAL(error) << "404 NOT FOUND    [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+        case ERROR_TIMEOUT:
+            BOOST_LOG_TRIVIAL(error) << "TIMEOUT ERROR   [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+        case ERROR_READING_REQUEST:
+            BOOST_LOG_TRIVIAL(error) << "Reading request error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+        case ERROR_SEND_RESPONSE:
+            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+        case ERROR_SEND_FILE:
+            BOOST_LOG_TRIVIAL(error) << "Send response error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+        case ERROR_BAD_REQUEST:
+            BOOST_LOG_TRIVIAL(error) << "Bad request error [WORKER PID " << getpid() << "]    [CLIENT SOCKET "
+                                     << this->sock << "]";
+            break;
+    }
+
 }

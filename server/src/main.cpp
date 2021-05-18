@@ -12,10 +12,13 @@ int main() {
         return -1;
     }
 
+
     /*
     int listen_sock;
     MainServerSettings server("../settings/mohican.conf");
     ServerSettings server_settings = server.get_server();
+    server_settings.print_properties();
+    std::cout << server_settings.get_root("/index.html");
 
     listen_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_sock == -1)
@@ -41,6 +44,7 @@ int main() {
     WorkerProcess worker(listen_sock, &server_settings);
 
     worker.run();
+
 
 
     //MainServerSettings config_serv("../config/src/mohican.conf");

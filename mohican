@@ -32,14 +32,14 @@ stop_soft() {
 	echo "Stopping Mohicans Server..."
 	get_pid
 	kill -1 "$PID_MASTER_PROCESS"
-	echo "stop soft"
+	echo "Stop soft"
 }
 
 stop_hard() {
   echo "Stopping Mohicans Server..."
   get_pid
   kill -2 "$PID_MASTER_PROCESS"
-  echo "stop hard"
+  echo "Stop hard"
   :> "$PID_FILE"
 }
 
@@ -53,9 +53,9 @@ reload() {
 status() {
 # shellcheck disable=SC2046
   if [ $(head -n 1 "$PID_FILE") ]; then
-    echo "$SERVER_NAME is running!!"
+    echo "$SERVER_NAME is running!!!"
   else
-    echo "$SERVER_NAME is down!!"
+    echo "$SERVER_NAME is down!!!"
   fi
 }
 
@@ -80,7 +80,7 @@ create_config() {
         exit 0
       ;;
     esac
-    echo "Invalid key to cmd";
+    echo "Usage : <hard|soft>";
     ;;
   	status)
 	    status

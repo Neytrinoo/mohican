@@ -24,7 +24,7 @@ start() {
 	  echo "Starting $SERVER_NAME Server..."
 	  "$MOHICANS_HOME"/mohican.out
 	  SERVER_STATUS="on"
-		exit 0
+    exit 0
 	fi	
 }
 
@@ -38,25 +38,25 @@ stop_soft() {
 stop_hard() {
   echo "Stopping Mohicans Server..."
   get_pid
-	kill -2 "$PID_MASTER_PROCESS"
-	echo "stop hard"
-	:> "$PID_FILE"
+  kill -2 "$PID_MASTER_PROCESS"
+  echo "stop hard"
+  :> "$PID_FILE"
 }
 
 reload() {
-	echo "Server reloading..."
+  echo "Server reloading..."
   get_pid
   :> "$PID_FILE"
-	kill -13 "$PID_MASTER_PROCESS"
+  kill -13 "$PID_MASTER_PROCESS"
 }
 
 status() {
 # shellcheck disable=SC2046
   if [ $(head -n 1 "$PID_FILE") ]; then
-	  echo "$SERVER_NAME is running!!"
-	else
-	  echo "$SERVER_NAME is down!!"
-	fi
+    echo "$SERVER_NAME is running!!"
+  else
+    echo "$SERVER_NAME is down!!"
+  fi
 }
 
 create_config() {

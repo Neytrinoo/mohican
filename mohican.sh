@@ -17,15 +17,15 @@ get_pid() {
 }
 
 start() {
-	if [ $SERVER_STATUS = "on" ]; then
-		echo "Server already started"
-		exit 1
-	else
-	  echo "Starting $SERVER_NAME Server..."
-	  "$MOHICANS_HOME"/mohican.out
-	  SERVER_STATUS="on"
+  if [ $SERVER_STATUS = "on" ]; then
+    echo "Server already started"
+    exit 1
+  else
+    echo "Starting $SERVER_NAME Server..."
+    "$MOHICANS_HOME"/mohican.out
+    SERVER_STATUS="on"
     exit 0
-	fi	
+  fi
 }
 
 stop_soft() {

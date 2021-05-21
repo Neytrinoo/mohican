@@ -1,17 +1,17 @@
 # Welcome to mohican
 
 ## What's mohican?
-Mohican is a new web-server made for UNIX systems.
+Mohican is a free, open-source web server made for UNIX systems.
 
-What it can do:
+Features:
 * Mohican can process http requests.
-* Mohican can connect to other upstreams.
-* Mohican uses config file.
+* Mohican can connect to other web-servers.
+* Mohican uses config file to get information.
 * Mohican is controlled by command line.
-* Write information into logs. 
+* Mohican writes information into logs.
 
-## Commands to control mohican server
-### Start mohican server
+## List of commands
+### Start mohican web server
 ```
 $ sudo ./mohican.sh start
 ```
@@ -26,17 +26,19 @@ $ sudo ./mohican.sh create config
 $ sudo ./mohican.sh status
 ```
 
-### Reload mohican server with new changes in config file
+### Reload mohican web server
 ```
 $ sudo ./mohican.sh reload
 ```
 
-### Stop hard mohican server
+### Stop mohican web server
+
+#### Stop hard
 ```
 $ sudo ./mohican.sh stop hard
 ```
 
-### Stop soft mohican server
+#### Stop soft
 ```
 $ sudo ./mohican.sh stop soft
 ```

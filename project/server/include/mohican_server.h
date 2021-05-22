@@ -4,6 +4,8 @@
 #include "main_server_settings.h"
 #include "server_settings.h"
 #include "worker_process.h"
+#include "mohican_log.h"
+#include "define_log.h"
 
 #include <vector>
 #include <string>
@@ -47,12 +49,14 @@ public:
     ~MohicanServer() = default;
 
     int server_start();
+        void init_logs(bool flush_flag);
+            bl::trivial::severity_level cast_types_logs_level(std::string lvl);
+            void write_to_logs(std::string message, bl::trivial::severity_level lvl);
+
         static int daemonize();
         bool bind_listen_sock();
         int add_work_processes();
         int fill_pid_file();
-
-        int log_open(std::string path_to_log, std::string level_log, bool key);
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig);  // handler for soft stop
@@ -72,6 +76,10 @@ private:
     std::ofstream stream_to_error_log;
     std::string error_log;
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
+
+    std::vector<MohicanLog> vector_logs;
+    std::string access_log_level, access_lvl_before_reload;  // TODO: from config
+    std::string error_log_level, error_lvl_before_reload;  // TODO: in what class it will be
 
     class ServerSettings server;
 

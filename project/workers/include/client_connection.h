@@ -4,7 +4,8 @@
 #include <ctime>
 
 #include "server_settings.h"
-
+#include "mohican_log.h"
+#include "define_log.h"
 
 typedef enum {
     CONNECTION_PROCESSING,
@@ -15,7 +16,7 @@ typedef enum {
 
 class ClientConnection {
 public:
-    ClientConnection(int sock, class ServerSettings *server_settings);
+    ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs);
 
     ClientConnection &operator=(const ClientConnection &other) = default;
 
@@ -27,16 +28,19 @@ public:
 
     clock_t get_timeout();
 
+    void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 private:
     int sock;
     clock_t timeout;
+
+    std::vector<MohicanLog> vector_logs;
 
     typedef enum {
         GET_REQUEST,
         FORM_HTTP_HEADER_RESPONSE,
         SEND_HTTP_HEADER_RESPONSE,
         SEND_FILE,
-        ERROR
+        ERROR_STAGE
     } connection_stages_t;
 
     typedef enum {
@@ -81,5 +85,5 @@ private:
 
     void set_method();
 
-    void write_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
+    void message_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
 };

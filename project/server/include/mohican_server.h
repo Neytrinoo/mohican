@@ -15,7 +15,8 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/attributes.hpp>
-
+#include <sys/types.h>
+#include <sys/wait.h>
 
 typedef boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger_t;
 

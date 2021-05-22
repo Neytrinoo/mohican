@@ -185,19 +185,32 @@ int MohicanServer::server_stop(stop_level_t level) {
     if (level == HARD_LEVEL) {
         BOOST_LOG_TRIVIAL(warning) << "HARD SERVER STOP...";
         close(this->listen_sock);
+
+        int status;
         for (auto &i : this->workers_pid) {
             kill(i, SIGINT);
         }
+        for (auto &i : this->workers_pid) {
+            waitpid(i, &status, 0);
+        }
+
         BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
         exit(0);
     }
 
     if (level == SOFT_LEVEL) {
         BOOST_LOG_TRIVIAL(warning) << "SOFT SERVER STOP...";
-        close(this->listen_sock);
+
+        int status;
         for (auto &i : this->workers_pid) {
             kill(i, SIGHUP);
         }
+        for (auto &i : this->workers_pid) {
+            waitpid(i, &status, 0);
+        }
+
+        close(this->listen_sock);
+        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
         exit(0);
     }
 

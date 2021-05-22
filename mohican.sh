@@ -6,56 +6,73 @@
 
 export MOHICANS_HOME=.
 export SERVER_NAME=mohican
-SERVER_STATUS="off"
 export PID_FILE=pid_file.txt
 export DEFAULT_PATH_TO_CONFIG=.mohican.conf
 
 
 get_pid() {
   # shellcheck disable=SC2002
-  PID_MASTER_PROCESS=$(cat "$PID_FILE" | head -1)
+  PID_MASTER_PROCESS=$(head -n 1 "$PID_FILE")
 }
 
 start() {
-  if [ $SERVER_STATUS = "on" ]; then
-    echo "Server already started"
+  if [ -f "$PID_FILE" ]; then
+    echo "Server has already started!"
     exit 1
   else
-    echo "Starting $SERVER_NAME Server..."
+    echo "Starting $SERVER_NAME server..."
     "$MOHICANS_HOME"/mohican.out
-    SERVER_STATUS="on"
+    echo "Server started!"
     exit 0
   fi
 }
 
 stop_soft() {
-	echo "Stopping Mohicans Server..."
-	get_pid
-	kill -1 "$PID_MASTER_PROCESS"
-	echo "Stop soft"
+  if [ ! -f "$PID_FILE" ]; then
+    echo "Server has not started yet!"
+    exit 1
+  else
+	  echo "Stopping soft $SERVER_NAME server..."
+	  get_pid
+	  kill -1 "$PID_MASTER_PROCESS"
+	  echo "Server stopped!"
+	  rm "$PID_FILE"
+	  exit 0
+	fi
 }
 
 stop_hard() {
-  echo "Stopping Mohicans Server..."
-  get_pid
-  kill -2 "$PID_MASTER_PROCESS"
-  echo "Stop hard"
-  :> "$PID_FILE"
+  if [ ! -f "$PID_FILE" ]; then
+    echo "Server has not started yet!"
+    exit 1
+  else
+    echo "Stopping hard $SERVER_NAME server..."
+    get_pid
+    kill -2 "$PID_MASTER_PROCESS"
+    echo "Server stopped!"
+    rm "$PID_FILE"
+    exit 0
+  fi
 }
 
 reload() {
-  echo "Server reloading..."
-  get_pid
-  :> "$PID_FILE"
-  kill -13 "$PID_MASTER_PROCESS"
+  if [ ! -f "$PID_FILE" ]; then
+    echo "Server has not started yet!"
+    exit 1
+  else
+    echo "Reloading $SERVER_NAME server..."
+    get_pid
+    :> "$PID_FILE"
+    kill -13 "$PID_MASTER_PROCESS"
+  fi
 }
 
 status() {
 # shellcheck disable=SC2046
-  if [ $(head -n 1 "$PID_FILE") ]; then
-    echo "$SERVER_NAME is running!!!"
+  if [ -f "$PID_FILE" ]; then
+    echo "$SERVER_NAME is running!"
   else
-    echo "$SERVER_NAME is down!!!"
+    echo "$SERVER_NAME is down!"
   fi
 }
 
@@ -89,10 +106,17 @@ create_config() {
       shift
       if [ "$1" =  config ]; then
         create_config
+      else
+        echo "Usage : <config>";
       fi
     ;;
 
-	  *) echo "Usage : <start|stop|reload|status|create config>";
+	  *)
+	    if [ -f "$PID_FILE" ]; then
+	      echo "Usage : <stop|reload|status>";
+	    else
+	      echo "Usage : <start|status|create>";
+	    fi
 	  ;;
   esac
 exit 0

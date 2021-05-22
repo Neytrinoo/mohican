@@ -1,7 +1,5 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <iostream>
-#include <ctime>
 #include <fcntl.h>
 #include <csignal>
 #include <boost/log/core.hpp>
@@ -42,6 +40,12 @@ void WorkerProcess::run() {
     while (!is_hard_stop && !is_soft_stop) {
         epoll_events_count = epoll_wait(epoll_fd, events, EPOLL_SIZE, EPOLL_RUN_TIMEOUT);
         for (int i = 0; i < epoll_events_count; ++i) {
+            if (is_soft_stop) {
+                ev.data.fd = this->listen_sock;
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, this->listen_sock, &ev);
+                break;
+            }
+
             if (events[i].data.fd == this->listen_sock) {
                 client = accept(this->listen_sock, NULL, NULL);
                 fcntl(client, F_SETFL, fcntl(client, F_GETFL, 0) | O_NONBLOCK);
@@ -60,9 +64,6 @@ void WorkerProcess::run() {
             }
         }
     }
-
-    ev.data.fd = this->listen_sock;
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, this->listen_sock, &ev);
 
     if (is_soft_stop) {
         this->write_to_log(INFO_SOFT_STOP_START);

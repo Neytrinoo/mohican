@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "server_settings.h"
 #include "config_defines.h"
@@ -28,7 +29,6 @@ private:
         ERROR_LOG_NUMBER = 3
     };
 
-    std::vector<UpstreamSettings> upstreams;
 public:
     static const std::vector<std::string> valid_properties;
 
@@ -47,12 +47,15 @@ public:
 
     friend void parse_config(MainServerSettings &server);
 
-    int get_count_workflows();
+    int get_count_workflows() const;
 
-    void set_upstream(std::string upstream_address, int weight = 1);
+    UpstreamSettings *get_upstream(std::string &upstream_address);
 
     ServerSettings get_server();
 
     std::string get_log_filename();
+
     std::string get_log_level();
+
+    void print_properties();
 };

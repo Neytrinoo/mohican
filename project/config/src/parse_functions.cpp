@@ -27,6 +27,18 @@ location_type_t get_prefix_status(std::string &config, int &pos) {
     return type_location;
 }
 
+static void skip_space(std::string &config, int &pos) {
+    while (config[pos] == ' ') {
+        pos++;
+    }
+}
+
+static void skip_isspace(std::string &config, int &pos) {
+    while (isspace(config[pos])) {
+        pos++;
+    }
+}
+
 bool get_url(std::string &config, int &pos, location_t &location) {
     if (config[pos] != '/') {
         return false;
@@ -40,27 +52,64 @@ bool get_url(std::string &config, int &pos, location_t &location) {
     return true;
 }
 
-int parse_upstreams(MainServerSettings &main_server, std::string &config, int &pos) {
-    while (isspace(config[pos])) {
-        pos++;
-    }
+int parse_upstreams(ServerSettings &server, std::string &config, int &pos) {
+    skip_isspace(config, pos);
 
     if (config[pos] != '{') {
         return L_ERR;
     }
     pos++;
 
+    std::string upstream_address;
+    int weight;
+    int pos_before;
+    skip_isspace(config, pos);
     while (pos < config.length() && config[pos] != '}') {
-        while (isspace(config[pos])) {
+        if (pos >= config.length() || config[pos] == '}') {
+            continue;
+        }
+        pos_before = pos;
+        while (pos < config.length() && config[pos] != ' ' && config[pos] != ';') {
             pos++;
         }
+        upstream_address = config.substr(pos_before, pos - pos_before);
 
+        skip_space(config, pos);
+        weight = 1;
+        if (config.substr(pos, sizeof("weight") - 1) == "weight") {
+            pos += sizeof("weight") - 1;
+            skip_space(config, pos);
+            if (config[pos] != '=') {
+                return L_ERR;
+            }
+            pos++;
+            skip_space(config, pos);
+            pos_before = pos;
+            while (isdigit(config[pos])) {
+                pos++;
+            }
+            weight = std::stoi(config.substr(pos_before, pos - pos_before));
 
+            skip_space(config, pos);
+            if (config[pos] != ';') {
+                return L_ERR;
+            }
+        }
+        if (config[pos] != ';') {
+            return L_ERR;
+        }
+        pos++;
+        skip_isspace(config, pos);
+        server.add_upstream(upstream_address, weight);
     }
+
+    return (config[pos++] == '}') ? L_END_UPSTREAM : L_ERR;
 }
+
 
 int parse_location(ServerSettings &server, std::string &config, int &pos) {
     location_t location;
+    location.is_proxy = false;
     location_type_t type_location;
 
     if (server.is_root) {
@@ -151,7 +200,7 @@ int parse_location(ServerSettings &server, std::string &config, int &pos) {
 }
 
 
-int get_lexem(std::string &config, int &pos, const std::vector <std::string> &valid_properties) {
+int get_lexem(std::string &config, int &pos, const std::vector<std::string> &valid_properties) {
     while (isspace(config[pos]) && config[pos] != '\n') {
         pos++;
     }
@@ -197,7 +246,7 @@ int get_lexem(std::string &config, int &pos, const std::vector <std::string> &va
                 return L_LOCATION;
             }
             if (*prop_iter == "upstreams") {
-
+                return L_UPSTREAM;
             }
             return L_KEY;
         }
@@ -239,23 +288,25 @@ void parse_config(MainServerSettings &main_server) {
     int pos = 0;
 
     state_t stages[S_COUNT][L_COUNT] = {
-            /* L_PROTOCOL  L_BRACE_OPEN  L_BRACE_CLOSE    L_NEW_LINE     L_KEY     L_VALUE   L_SERVER_START    L_LOCATION     L_END_LOCATION  L_SERVER_END  L_ERR*/
-            /*S_START*/        {S_BRACE_OPEN, S_ERR, S_ERR, S_START,        S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /* L_PROTOCOL  L_BRACE_OPEN  L_BRACE_CLOSE    L_NEW_LINE     L_KEY     L_VALUE   L_SERVER_START    L_LOCATION     L_END_LOCATION  L_SERVER_END  L_UPSTREAM  L_END_UPSTREAM L_ERR*/
+            /*S_START*/        {S_BRACE_OPEN, S_ERR, S_ERR, S_START,        S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_ERR, S_ERR},
             /*S_BRACE_OPEN*/
-                               {S_ERR,        S_KEY, S_ERR, S_BRACE_OPEN,   S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+                               {S_ERR,        S_KEY, S_ERR, S_BRACE_OPEN,   S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_ERR, S_ERR},
             /*S_KEY*/
-                               {S_ERR,        S_ERR, S_END, S_KEY,          S_VALUE, S_ERR, S_SERVER_START, S_LOCATION, S_ERR, S_KEY, S_ERR},
+                               {S_ERR,        S_ERR, S_END, S_KEY,          S_VALUE, S_ERR, S_SERVER_START, S_LOCATION, S_ERR, S_KEY, S_UPSTREAM, S_ERR, S_ERR},
             /*S_VALUE*/
-                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_KEY, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_KEY, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_ERR, S_ERR},
+            /*S_UPSTREAM*/
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_KEY, S_ERR},
             /*S_SERVER_START*/
-                               {S_ERR,        S_KEY, S_ERR, S_SERVER_START, S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+                               {S_ERR,        S_KEY, S_ERR, S_SERVER_START, S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_ERR, S_ERR},
             /*S_BRACE_CLOSE*/
-                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR,      S_ERR, S_ERR},
             /*S_LOCATION*/
-                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_KEY, S_ERR, S_ERR},
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_KEY, S_ERR, S_ERR,      S_ERR, S_ERR},
     };
 
-    int state = S_START;
+    state_t state = S_START;
     lexem_t lexem;
     int pos_before;
     int property_number;
@@ -315,7 +366,7 @@ void parse_config(MainServerSettings &main_server) {
                 state = S_ERR;
                 continue;
             }
-            main_server.add_server();
+            // main_server.add_server();
             is_server_adding = true;
         } else if (lexem == L_BRACE_CLOSE && is_server_adding) { // if the end of the block is the server
             is_server_adding = false;
@@ -327,14 +378,14 @@ void parse_config(MainServerSettings &main_server) {
             }
             state = S_LOCATION;
             lexem = static_cast<lexem_t>(parse_location(main_server.server, config_text, pos));
+        } else if (lexem == L_UPSTREAM && stages[state][lexem] != S_ERR) {
+            state = stages[state][lexem];
+            lexem = static_cast<lexem_t>(parse_upstreams(main_server.server, config_text, pos));
         }
 
         state = stages[state][lexem];
     }
-    /*
-    std::cout << main_server.count_workflows << std::endl;
-    std::cout << main_server.access_log_file << std::endl;
-    std::cout << main_server.error_log_file << std::endl;
-    main_server.get_server().print_properties();
-     */
+    if (state == S_ERR) {
+        throw InvalidConfigException("Invalid config file, pos = " + std::to_string(pos));
+    }
 }

@@ -9,7 +9,7 @@
 #include "exceptions_config_file.h"
 
 
-location_type_t get_prefix_status(std::string& config, int &pos) {
+location_type_t get_prefix_status(std::string &config, int &pos) {
     location_type_t type_location;
     if (config[pos] == '=') {
         type_location = EXACT_MATCH;
@@ -38,6 +38,25 @@ bool get_url(std::string &config, int &pos, location_t &location) {
 
     location.url = config.substr(pos_before, pos - pos_before);
     return true;
+}
+
+int parse_upstreams(MainServerSettings &main_server, std::string &config, int &pos) {
+    while (isspace(config[pos])) {
+        pos++;
+    }
+
+    if (config[pos] != '{') {
+        return L_ERR;
+    }
+    pos++;
+
+    while (pos < config.length() && config[pos] != '}') {
+        while (isspace(config[pos])) {
+            pos++;
+        }
+
+
+    }
 }
 
 int parse_location(ServerSettings &server, std::string &config, int &pos) {
@@ -88,10 +107,12 @@ int parse_location(ServerSettings &server, std::string &config, int &pos) {
             continue;
         } else if (lexem == L_KEY && state == S_KEY) {
             state = S_VALUE;
-            location_property_number = server.get_number_of_location_property(config.substr(pos_before, pos - pos_before));
+            location_property_number = server.get_number_of_location_property(
+                    config.substr(pos_before, pos - pos_before));
         } else if (lexem == L_VALUE && state == S_VALUE) {
             try {
-                server.set_location_property(location_property_number, config.substr(pos_before, pos - pos_before), location);
+                server.set_location_property(location_property_number, config.substr(pos_before, pos - pos_before),
+                                             location);
                 state = S_KEY;
             } catch (std::exception &exception) {
                 std::cout << exception.what();
@@ -130,8 +151,7 @@ int parse_location(ServerSettings &server, std::string &config, int &pos) {
 }
 
 
-
-int get_lexem(std::string &config, int &pos, const std::vector<std::string> &valid_properties) {
+int get_lexem(std::string &config, int &pos, const std::vector <std::string> &valid_properties) {
     while (isspace(config[pos]) && config[pos] != '\n') {
         pos++;
     }
@@ -176,6 +196,9 @@ int get_lexem(std::string &config, int &pos, const std::vector<std::string> &val
             if (*prop_iter == "location") {
                 return L_LOCATION;
             }
+            if (*prop_iter == "upstreams") {
+
+            }
             return L_KEY;
         }
     }
@@ -216,14 +239,20 @@ void parse_config(MainServerSettings &main_server) {
     int pos = 0;
 
     state_t stages[S_COUNT][L_COUNT] = {
-                       /* L_PROTOCOL  L_BRACE_OPEN  L_BRACE_CLOSE    L_NEW_LINE     L_KEY     L_VALUE   L_SERVER_START    L_LOCATION     L_END_LOCATION  L_SERVER_END  L_ERR*/
-    /*S_START*/        {S_BRACE_OPEN,      S_ERR,       S_ERR,      S_START,        S_ERR,     S_ERR,         S_ERR,        S_ERR,        S_ERR,           S_ERR,       S_ERR},
-    /*S_BRACE_OPEN*/   {S_ERR,             S_KEY,       S_ERR,      S_BRACE_OPEN,   S_ERR,     S_ERR,         S_ERR,        S_ERR,        S_ERR,           S_ERR,       S_ERR},
-    /*S_KEY*/          {S_ERR,             S_ERR,       S_END,      S_KEY,          S_VALUE,   S_ERR,         S_SERVER_START, S_LOCATION, S_ERR,           S_KEY,       S_ERR},
-    /*S_VALUE*/        {S_ERR,             S_ERR,       S_ERR,      S_ERR,          S_ERR,     S_KEY,         S_ERR,        S_ERR,        S_ERR,           S_ERR,       S_ERR},
-    /*S_SERVER_START*/ {S_ERR,             S_KEY,       S_ERR,      S_SERVER_START, S_ERR,     S_ERR,         S_ERR,        S_ERR,        S_ERR,           S_ERR,       S_ERR},
-    /*S_BRACE_CLOSE*/  {S_ERR,             S_ERR,       S_ERR,      S_ERR,          S_ERR,     S_ERR,         S_ERR,        S_ERR,        S_ERR,           S_ERR,       S_ERR},
-    /*S_LOCATION*/     {S_ERR,             S_ERR,       S_ERR,      S_ERR,          S_ERR,     S_ERR,         S_ERR,        S_ERR,        S_KEY,           S_ERR,       S_ERR},
+            /* L_PROTOCOL  L_BRACE_OPEN  L_BRACE_CLOSE    L_NEW_LINE     L_KEY     L_VALUE   L_SERVER_START    L_LOCATION     L_END_LOCATION  L_SERVER_END  L_ERR*/
+            /*S_START*/        {S_BRACE_OPEN, S_ERR, S_ERR, S_START,        S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /*S_BRACE_OPEN*/
+                               {S_ERR,        S_KEY, S_ERR, S_BRACE_OPEN,   S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /*S_KEY*/
+                               {S_ERR,        S_ERR, S_END, S_KEY,          S_VALUE, S_ERR, S_SERVER_START, S_LOCATION, S_ERR, S_KEY, S_ERR},
+            /*S_VALUE*/
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_KEY, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /*S_SERVER_START*/
+                               {S_ERR,        S_KEY, S_ERR, S_SERVER_START, S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /*S_BRACE_CLOSE*/
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_ERR, S_ERR, S_ERR},
+            /*S_LOCATION*/
+                               {S_ERR,        S_ERR, S_ERR, S_ERR,          S_ERR,   S_ERR, S_ERR,          S_ERR,      S_KEY, S_ERR, S_ERR},
     };
 
     int state = S_START;
@@ -249,7 +278,8 @@ void parse_config(MainServerSettings &main_server) {
 
         if (lexem == L_KEY) {
             if (is_server_adding) {
-                property_number = main_server.server.get_number_of_property(config_text.substr(pos_before, pos - pos_before));
+                property_number = main_server.server.get_number_of_property(
+                        config_text.substr(pos_before, pos - pos_before));
                 if (property_number == -1) {
                     state = S_ERR;
                     continue;
@@ -266,7 +296,7 @@ void parse_config(MainServerSettings &main_server) {
             if (is_server_adding) {
                 try {
                     main_server.server.set_property(property_number,
-                                                               config_text.substr(pos_before, pos - pos_before));
+                                                    config_text.substr(pos_before, pos - pos_before));
                 } catch (std::exception &exception) {
                     std::cout << exception.what();
                     break;

@@ -30,6 +30,8 @@ typedef enum {
     L_LOCATION,
     L_END_LOCATION,
     L_SERVER_END,
+    L_UPSTREAM,
+    L_END_UPSTREAM,
     L_ERR,
     L_COUNT,
 

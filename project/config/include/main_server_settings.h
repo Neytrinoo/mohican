@@ -5,6 +5,8 @@
 
 #include "server_settings.h"
 #include "config_defines.h"
+#include "upstream_settings.h"
+
 
 class MainServerSettings {
 private:
@@ -26,6 +28,7 @@ private:
         ERROR_LOG_NUMBER = 3
     };
 
+    std::vector<UpstreamSettings> upstreams;
 public:
     static const std::vector<std::string> valid_properties;
 
@@ -45,6 +48,8 @@ public:
     friend void parse_config(MainServerSettings &server);
 
     int get_count_workflows();
+
+    void set_upstream(std::string upstream_address, int weight = 1);
 
     ServerSettings get_server();
 

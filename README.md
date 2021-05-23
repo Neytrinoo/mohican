@@ -42,3 +42,9 @@ $ sudo ./mohican.sh stop hard
 ```
 $ sudo ./mohican.sh stop soft
 ```
+
+## Before start
+### You need to install boost library
+```
+$ sudo apt-get install libboost-all-dev
+```

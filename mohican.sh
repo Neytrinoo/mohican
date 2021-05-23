@@ -101,6 +101,7 @@ create_config() {
         exit 0
       ;;
     esac
+    ;;
   	status)
 	    status
     ;;

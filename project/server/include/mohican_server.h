@@ -84,11 +84,14 @@ private:
 
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
 
-    std::vector<MohicanLog> vector_logs;
-    std::vector<MohicanLog> new_vector_logs;  // TODO: check why not used, error
+    std::string access_log_level = "info";
+    std::string error_log_level = "error";
+    std::string access_lvl_before_reload, error_lvl_before_reload;
+    MohicanLog access_log = MohicanLog ("access", true, cast_types_logs_level(access_log_level));
+    MohicanLog error_log = MohicanLog ("error", true, cast_types_logs_level(error_log_level));
 
-    std::string access_log_level, access_lvl_before_reload;  // TODO: from config
-    std::string error_log_level, error_lvl_before_reload;  // TODO: in what class it will be?
+    std::vector<MohicanLog*> vector_logs;
+    std::vector<MohicanLog*> new_vector_logs;  // TODO: check why not used, error
 
     class ServerSettings server;
 

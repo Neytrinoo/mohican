@@ -21,7 +21,7 @@ extern bool is_hard_stop = false;
 extern bool is_soft_stop = false;
 extern bool is_soft_reload = false;
 
-WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs) :
+WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs) :
         listen_sock(listen_sock), server_settings(server_settings), vector_logs(vector_logs) {
     signal(SIGPIPE, SIG_IGN);
     this->setup_sighandlers();
@@ -120,6 +120,6 @@ void WorkerProcess::message_to_log(log_messages_t log_type) {
 
 void WorkerProcess::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
     for (auto i : vector_logs) {
-        i.log(message, lvl);
+        i->log(message, lvl);
     }
 }

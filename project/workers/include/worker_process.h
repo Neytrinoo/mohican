@@ -12,7 +12,7 @@
 
 class WorkerProcess {
 public:
-    explicit WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs);
+    explicit WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
 
     void run();
 
@@ -38,5 +38,5 @@ private:
     int listen_sock;
     void message_to_log(log_messages_t log_type);
 
-    std::vector<MohicanLog> vector_logs;
+    std::vector<MohicanLog*> vector_logs;
 };

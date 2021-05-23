@@ -16,7 +16,7 @@ typedef enum {
 
 class ClientConnection {
 public:
-    ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs);
+    ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
 
     ClientConnection &operator=(const ClientConnection &other) = default;
 
@@ -33,7 +33,7 @@ private:
     int sock;
     clock_t timeout;
 
-    std::vector<MohicanLog> vector_logs;
+    std::vector<MohicanLog*> vector_logs;
 
     typedef enum {
         GET_REQUEST,

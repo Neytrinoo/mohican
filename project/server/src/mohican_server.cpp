@@ -20,6 +20,8 @@ MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
     this->count_workflows = this->mohican_settings.get_count_workflows();
     this->server = this->mohican_settings.get_server();
+    vector_logs.push_back(&access_log);
+    vector_logs.push_back(&error_log);
 }
 
 bl::trivial::severity_level MohicanServer::cast_types_logs_level(std::string lvl) {
@@ -37,15 +39,15 @@ bl::trivial::severity_level MohicanServer::cast_types_logs_level(std::string lvl
 
 void MohicanServer::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
     for (auto i : vector_logs) {
-        i.log(message, lvl);
+        i->log(message, lvl);
     }
 }
 
 void MohicanServer::init_logs(bool flush_flag) {
     MohicanLog access_log("access", flush_flag, cast_types_logs_level(access_log_level));
     MohicanLog error_log("error", flush_flag, cast_types_logs_level(error_log_level));
-    vector_logs.push_back(access_log);
-    vector_logs.push_back(error_log);
+    vector_logs.push_back(&access_log);
+    vector_logs.push_back(&error_log);
     write_to_logs("SERVER STARTING...", INFO);
 }
 

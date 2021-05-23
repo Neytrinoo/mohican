@@ -22,7 +22,7 @@
 #define PAGE_404 "public/404.html" // потом изменить
 #define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
 
-ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs) :
+ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs) :
         sock(sock), server_settings(server_settings), vector_logs(vector_logs) {}
 
 connection_status_t ClientConnection::connection_processing() {
@@ -253,6 +253,6 @@ clock_t ClientConnection::get_timeout() {
 
 void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
     for (auto i : vector_logs) {
-        i.log(message, lvl);
+        i->log(message, lvl);
     }
 }

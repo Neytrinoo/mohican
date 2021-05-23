@@ -22,6 +22,7 @@ public:
 
     static void sighup_handler(int sig);
     static void sigint_handler(int sig);
+    static void sigpoll_handler(int sig);
 
     void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 

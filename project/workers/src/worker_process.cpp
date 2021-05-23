@@ -19,6 +19,7 @@
 
 extern bool is_hard_stop = false;
 extern bool is_soft_stop = false;
+extern bool is_soft_reload = false;
 
 WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog>& vector_logs) :
         listen_sock(listen_sock), server_settings(server_settings), vector_logs(vector_logs) {
@@ -61,7 +62,7 @@ void WorkerProcess::run() {
     ev.data.fd = this->listen_sock;
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, this->listen_sock, &ev);
 
-    if (is_soft_stop) {
+    if (is_soft_stop || is_soft_reload) {
         this->message_to_log(INFO_SOFT_STOP_START);
         for (int i = 0; i < epoll_events_count; ++i) {
             connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
@@ -85,6 +86,10 @@ void WorkerProcess::sighup_handler(int sig) {
 
 void WorkerProcess::sigint_handler(int sig) {
     is_hard_stop = true;
+}
+
+void WorkerProcess::sigpoll_handler(int sig){
+    is_soft_reload = true;
 }
 
 void WorkerProcess::setup_sighandlers() {

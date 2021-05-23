@@ -43,11 +43,18 @@ stop_hard() {
   :> "$PID_FILE"
 }
 
-reload() {
+reload_soft() {
   echo "Server reloading..."
   get_pid
   :> "$PID_FILE"
   kill -13 "$PID_MASTER_PROCESS"
+}
+
+reload_hard() {
+  echo "Server reloading..."
+  get_pid
+  :> "$PID_FILE"
+  kill -14 "$PID_MASTER_PROCESS"
 }
 
 status() {
@@ -82,6 +89,18 @@ create_config() {
     esac
     echo "Usage : <hard|soft>";
     ;;
+    reload)
+    shift
+    case $1 in
+      soft)
+        reload_soft
+        exit 0
+      ;;
+      hard)
+        reload_hard
+        exit 0
+      ;;
+    esac
   	status)
 	    status
     ;;

@@ -17,6 +17,7 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/attributes.hpp>
+#include <sys/wait.h>
 
 
 typedef boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger_t;
@@ -29,7 +30,9 @@ namespace attrs = boost::log::attributes;
 
 extern int process_soft_stop;
 extern int process_hard_stop;
-extern int process_reload;
+extern int process_soft_reload;
+extern int process_hard_reload;
+extern int soft_reloading_is_finished;
 extern std::string path_to_config;
 
 typedef enum {
@@ -40,7 +43,12 @@ typedef enum {
 typedef enum {
     SOFT_LEVEL,
     HARD_LEVEL,
-} stop_level_t;
+} action_level_t;
+
+typedef enum {
+    START_SERVER,
+    RELOAD_SERVER,
+} status_server_action;
 
 class MohicanServer {
 public:
@@ -53,31 +61,34 @@ public:
             bl::trivial::severity_level cast_types_logs_level(std::string lvl);
             void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 
-        static int daemonize();
+        static int daemonize(status_server_action server_action);
         bool bind_listen_sock();
-        int add_work_processes();
-        int fill_pid_file();
+        int add_work_processes(status_server_action server_action);
+        int fill_pid_file(status_server_action server_action);
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig);  // handler for soft stop
         static void sigint_handler(int sig);  // handler for hard stop
-        static void sigpipe_handler(int sig);  // handler for reload
+        static void sigpipe_handler(int sig);  // handler for soft reload
+        static void sigalrm_handler(int sig);  // handler for hard reload
+        static void sigbus_handler(int sig);  // send after soft reloading in old master
 
-    int server_stop(stop_level_t level);
+    int server_stop(action_level_t level);
 
-    int server_reload();
-        int apply_config();
+    int server_reload(action_level_t level);
+        int apply_config(status_server_action server_action, action_level_t level);
 
 private:
     int count_workflows;
-    std::vector<pid_t> workers_pid;  // list of pid processes to add to pid_file
-    std::ofstream stream_to_access_log;
-    std::string access_log;
-    std::ofstream stream_to_error_log;
-    std::string error_log;
+
+    std::vector<pid_t> workers_pid;
+    std::vector<pid_t> new_workers_pid;
+
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
 
     std::vector<MohicanLog> vector_logs;
+    std::vector<MohicanLog> new_vector_logs;
+
     std::string access_log_level, access_lvl_before_reload;  // TODO: from config
     std::string error_log_level, error_lvl_before_reload;  // TODO: in what class it will be
 
@@ -85,7 +96,8 @@ private:
 
     int listen_sock;
 
-    MainServerSettings mohican_settings;  // TODO: реализовать default путь
+    MainServerSettings mohican_settings;
+    MainServerSettings new_mohican_settings;
 };
 
 #endif //NGINX_PROJECT_NGINXSERVER_H

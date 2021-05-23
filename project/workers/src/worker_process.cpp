@@ -100,6 +100,8 @@ void WorkerProcess::setup_sighandlers() {
     sigaction(SIGHUP, &act, nullptr);
     act.sa_handler = sigint_handler;
     sigaction(SIGINT, &act, nullptr);
+    act.sa_handler = sigpoll_handler;
+    sigaction(SIGPOLL, &act, nullptr);
 }
 
 void WorkerProcess::message_to_log(log_messages_t log_type) {

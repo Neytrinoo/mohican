@@ -22,6 +22,8 @@ public:
     static void sighup_handler(int sig);
     static void sigint_handler(int sig);
 
+    bool is_banned_upstream(const std::string& ip, int result_code);
+
 private:
     typedef enum {
         INFO_HARD_STOP_DONE,
@@ -33,4 +35,6 @@ private:
     std::map<int, class ClientConnection> client_connections;
     int listen_sock;
     void write_to_log(log_messages_t log_type);
+
+    std::vector<std::string> banned_upstreams;
 };

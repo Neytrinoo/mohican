@@ -114,3 +114,20 @@ void WorkerProcess::write_to_log(log_messages_t log_type) {
             break;
     }
 }
+
+bool WorkerProcess::is_banned_upstream(const std::string& ip, int result_code) {
+    auto iter = std::find(banned_upstreams.begin(), banned_upstreams.end(), ip);
+
+    if (result_code % 100 == 4 || result_code % 100 == 5) {
+        if (iter == banned_upstreams.end()) {
+            banned_upstreams.push_back(ip);
+        }
+        return true;
+    }
+
+    if (iter != banned_upstreams.end()) {
+        banned_upstreams.erase(iter);
+    }
+
+    return false;
+}

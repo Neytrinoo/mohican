@@ -32,13 +32,12 @@ extern int process_soft_stop;
 extern int process_hard_stop;
 extern int process_soft_reload;
 extern int process_hard_reload;
-extern int soft_reloading_is_finished;
 extern std::string path_to_config;
 
-typedef enum {
+/*typedef enum {
     ACCESS_LEVEL,
     ERROR_LEVEL,
-} log_level_t;
+} log_level_t;*/
 
 typedef enum {
     SOFT_LEVEL,
@@ -71,7 +70,6 @@ public:
         static void sigint_handler(int sig);  // handler for hard stop
         static void sigpipe_handler(int sig);  // handler for soft reload
         static void sigalrm_handler(int sig);  // handler for hard reload
-        static void sigbus_handler(int sig);  // send after soft reloading in old master
 
     int server_stop(action_level_t level);
 
@@ -87,10 +85,10 @@ private:
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
 
     std::vector<MohicanLog> vector_logs;
-    std::vector<MohicanLog> new_vector_logs;
+    std::vector<MohicanLog> new_vector_logs;  // TODO: check why not used, error
 
     std::string access_log_level, access_lvl_before_reload;  // TODO: from config
-    std::string error_log_level, error_lvl_before_reload;  // TODO: in what class it will be
+    std::string error_log_level, error_lvl_before_reload;  // TODO: in what class it will be?
 
     class ServerSettings server;
 

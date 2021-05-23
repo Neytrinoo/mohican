@@ -15,7 +15,6 @@ int process_soft_stop = 0;
 int process_hard_stop = 0;
 int process_soft_reload = 0;
 int process_hard_reload = 0;
-int soft_reloading_is_finished = 0;
 
 MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
@@ -133,6 +132,8 @@ int MohicanServer::add_work_processes(status_server_action server_action) {
         count_work_processes = new_mohican_settings.get_count_workflows();
     }
 
+    //TODO: check on clear vector_pid
+
     for (int i = 0; i < count_work_processes; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
@@ -222,10 +223,6 @@ void MohicanServer::sigalrm_handler(int sig) {
     process_hard_reload = 1;
 }
 
-void MohicanServer::sigbus_handler(int sig) {
-    soft_reloading_is_finished = 1;
-}
-
 int MohicanServer::process_setup_signals() {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
@@ -238,8 +235,6 @@ int MohicanServer::process_setup_signals() {
     sigaction(SIGINT, &act, nullptr);
     act.sa_handler = sigalrm_handler;
     sigaction(SIGALRM, &act, nullptr);
-    act.sa_handler = sigbus_handler;
-    sigaction(SIGBUS, &act, nullptr);
     return 0;
 }
 
@@ -309,6 +304,7 @@ int MohicanServer::server_reload(action_level_t level) {
             }
 
             mohican_settings = new_mohican_settings;
+            workers_pid = new_workers_pid;
             write_to_logs("SERVER RELOADED!", INFO);
             return 0;
         }

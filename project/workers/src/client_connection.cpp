@@ -49,10 +49,14 @@ connection_status_t ClientConnection::connection_processing() {
         }
     }
 
-    if (this->stage == FORM_HTTP_HEADER_RESPONSE) {
-        if (this->form_http_header_response()) {
-            this->stage = SEND_HTTP_HEADER_RESPONSE;
-        }
+    if (stage == ROOT_FOUND) {
+        make_response_header(true);
+        stage = SEND_HTTP_HEADER_RESPONSE;
+    }
+    if (stage == ROOT_NOT_FOUND) {
+        make_response_header(false);
+        stage = SEND_HTTP_HEADER_RESPONSE;
+
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -104,15 +108,15 @@ bool ClientConnection::get_request() {
     return false;
 }
 
-bool ClientConnection::form_http_header_response() {
-    HttpResponse response = http_handler(request_, location_.root);
-    if (response.get_status() == 404) {
-        this->file_fd = open(PAGE_404, O_RDONLY);
-        this->write_to_log(ERROR_404_NOT_FOUND);
-    } else {
+bool ClientConnection::make_response_header(bool root_found) {
+    if (root_found) {
+        this->response = http_handler(request_, location_.root).get_string();
         this->file_fd = open((location_.root + request_.get_url()).c_str(), O_RDONLY);
+    } else {
+        this->file_fd = open(PAGE_404, O_RDONLY);
+        this->response = http_handler(request_).get_string();
+        this->write_to_log(ERROR_404_NOT_FOUND);
     }
-    this->response = response.get_string();
     this->line_.clear();
 
     return true;
@@ -243,10 +247,10 @@ ClientConnection::connection_stages_t ClientConnection::process_location() {
         location_ = this->server_settings->get_location(url);
     } catch (std::exception& e) {
         this->write_to_log(ERROR_404_NOT_FOUND);
-        return FORM_HTTP_HEADER_RESPONSE;
+        return ROOT_NOT_FOUND;
     }
     if (location_.is_proxy) {
         return PASS_TO_PROXY;
     }
-    return FORM_HTTP_HEADER_RESPONSE;
+    return ROOT_FOUND;
 }

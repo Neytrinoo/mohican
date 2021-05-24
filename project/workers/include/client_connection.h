@@ -34,7 +34,8 @@ private:
 
     typedef enum {
         GET_REQUEST,
-        FORM_HTTP_HEADER_RESPONSE,
+        ROOT_FOUND,
+        ROOT_NOT_FOUND,
         SEND_HTTP_HEADER_RESPONSE,
         SEND_FILE,
         BAD_REQUEST,
@@ -77,7 +78,7 @@ private:
     // return true if their connection processing stage is finished
     bool get_request();
     connection_stages_t process_location();
-    bool form_http_header_response();
+    bool make_response_header(bool root_found);
 
     bool send_http_header_response();
 

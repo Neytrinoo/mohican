@@ -5,12 +5,15 @@
 #include "server_settings.h"
 #include "exceptions_config_file.h"
 #include "server_settings_exceptions.h"
+#include "main_server_settings.h"
 #include "config_defines.h"
 
 const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
                                                                    "location", "servername"};
 
-const std::vector<std::string> ServerSettings::valid_location_properties = {"root", "add_root", "access_log", "error_log"};
+const std::vector<std::string> ServerSettings::valid_location_properties = {"root", "add_root", "access_log",
+                                                                            "error_log", "proxy_path"};
+
 
 int ServerSettings::get_number_of_property(std::string property) {
     int begin = 0;
@@ -82,6 +85,12 @@ void ServerSettings::print_properties() {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
     }
 
+    for (auto &upstream : this->upstreams) {
+        std::cout << "Upstream:" << std::endl;
+        std::cout << "\t" << upstream.first << std::endl;
+        std::cout << "\t" << upstream.second.get_weight() << std::endl;
+    }
+
 }
 
 int ServerSettings::get_number_of_location_property(std::string property) {
@@ -101,6 +110,14 @@ int ServerSettings::get_number_of_location_property(std::string property) {
     }
 
     return -1;
+}
+
+UpstreamSettings *ServerSettings::get_upstream(std::string &upstream_address) {
+    if (this->upstreams.find(upstream_address) == this->upstreams.end()) {
+        throw InvalidConfigException(
+                "the upstream defined in the 'location' block is not defined in the 'upstreams' block");
+    }
+    return &(this->upstreams[upstream_address]);
 }
 
 void ServerSettings::set_location_property(int number_of_property, std::string value, location_t &location) {
@@ -135,6 +152,11 @@ void ServerSettings::set_location_property(int number_of_property, std::string v
             } else {
                 throw InvalidConfigException("error_log field in 'location' must be only 'on' or 'off'");
             }
+            break;
+        case PROXY_PATH_LOCATION_NUMBER:
+            location.proxy_path = value.substr(begin, value_length);
+            location.is_proxy = true;
+            location.upstream = this->get_upstream(location.proxy_path);
             break;
     }
 }
@@ -183,6 +205,10 @@ location_t ServerSettings::get_location(std::string url) {
     }
 
     throw RootNotFoundException("404");
+}
+
+void ServerSettings::add_upstream(const std::string &upstream_address, int weight) {
+    this->upstreams[upstream_address] = UpstreamSettings(upstream_address, weight);
 }
 
 void ServerSettings::add_exact_match_url(location_t &location) {

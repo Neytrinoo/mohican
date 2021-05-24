@@ -3,12 +3,17 @@
 #include <string>
 #include <vector>
 
+#include "upstream_settings.h"
+
 typedef struct {
     std::string url;
     std::string root;
+    std::string proxy_path;
+    UpstreamSettings *upstream;
     bool case_sensitive;
     bool is_access_log;
     bool is_error_log;
+    bool is_proxy;
 } location_t;
 
 class ServerSettings {
@@ -39,9 +44,13 @@ private:
         ROOT_LOCATION_NUMBER = 0,
         ADD_ROOT_NUMBER = 1,
         ACCESS_LOG_LOCATION_NUMBER = 2,
-        ERROR_LOG_LOCATION_NUMBER = 3
+        ERROR_LOG_LOCATION_NUMBER = 3,
+        PROXY_PATH_LOCATION_NUMBER = 4
     };
 
+    std::map<std::string, UpstreamSettings> upstreams;
+
+    UpstreamSettings *get_upstream(std::string &upstream_address);
     /*
     const std::vector<std::string> valid_properties = {"listen", "root", "add_root", "access_log", "error_log",
                                                        "location"}; */
@@ -57,6 +66,8 @@ public:
     int get_number_of_property(std::string property);
 
     void set_property(int number_of_property, std::string value);
+
+    void add_upstream(const std::string &upstream_address, int weight = 1);
 
     int get_number_of_location_property(std::string property);
 

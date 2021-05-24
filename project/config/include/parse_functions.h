@@ -11,6 +11,7 @@ typedef enum {
     S_BRACE_OPEN,
     S_KEY,
     S_VALUE,
+    S_UPSTREAM,
     S_SERVER_START,
     S_BRACE_CLOSE,
     S_LOCATION,
@@ -30,6 +31,8 @@ typedef enum {
     L_LOCATION,
     L_END_LOCATION,
     L_SERVER_END,
+    L_UPSTREAM,
+    L_END_UPSTREAM,
     L_ERR,
     L_COUNT,
 

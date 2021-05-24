@@ -2,9 +2,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "server_settings.h"
 #include "config_defines.h"
+#include "upstream_settings.h"
+
 
 class MainServerSettings {
 private:
@@ -44,10 +47,15 @@ public:
 
     friend void parse_config(MainServerSettings &server);
 
-    int get_count_workflows();
+    int get_count_workflows() const;
+
+    UpstreamSettings *get_upstream(std::string &upstream_address);
 
     ServerSettings get_server();
 
     std::string get_log_filename();
+
     std::string get_log_level();
+
+    void print_properties();
 };

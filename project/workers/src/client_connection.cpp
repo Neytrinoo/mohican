@@ -11,7 +11,6 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 
-
 #include "client_connection.h"
 #include "http_request.h"
 #include "http_response.h"
@@ -22,7 +21,7 @@
 #define PAGE_404 "public/404.html" // потом изменить
 #define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
 
-ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings) : sock(sock), server_settings(
+ClientConnection::ClientConnection(int sock, class ServerSettings* server_settings) : sock(sock), server_settings(
         server_settings) {}
 
 connection_status_t ClientConnection::connection_processing() {
@@ -31,12 +30,22 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (this->stage == GET_REQUEST) {
-        if (this->get_request()) {
-            this->stage = FORM_HTTP_HEADER_RESPONSE;
-
-        } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
+        if (!get_request() && clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             this->write_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
+        }
+        try {
+            if (last_char_ == '\n') {
+                request_.add_line(line_);
+                line_.clear();
+            }
+        } catch (std::exception& e) {
+            this->write_to_log(ERROR_BAD_REQUEST);
+            // TODO: добавить обработку BAD REQUEST запроса (какой-то дефолтный ответ и страничка)
+            stage = BAD_REQUEST;
+        }
+        if (request_.first_line_added()) {
+            stage = process_location();
         }
     }
 
@@ -69,18 +78,17 @@ connection_status_t ClientConnection::connection_processing() {
 }
 
 bool ClientConnection::get_request() {
-    char c;
     bool is_read_data = false;
     int result_read;
-    while ((result_read = read(this->sock, &c, sizeof(c))) == sizeof(c)) {
-        this->request.push_back(c);
-        if (this->request.size() >= MAX_METHOD_LENGTH) {
+    while ((result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+        this->line_.push_back(last_char_);
+        if (this->line_.size() >= MAX_METHOD_LENGTH) {
             this->set_method();
         }
         is_read_data = true;
     }
 
-    if (this->is_end_request()) {
+    if (request_.requst_ended()) {
         return true;
     }
 
@@ -96,41 +104,19 @@ bool ClientConnection::get_request() {
     return false;
 }
 
-
 bool ClientConnection::form_http_header_response() {
-    HttpRequest http_request;
-    try {
-        http_request = HttpRequest(this->request);
-    } catch (std::exception &e) {
-        this->write_to_log(ERROR_BAD_REQUEST);
-        // TODO: добавить обработку BAD REQUEST запроса (какой-то дефолтный ответ и страничка)
-        return true;
-    }
-
-
-    std::string url = http_request.get_url();
-    this->write_to_log(INFO_NEW_CONNECTION, url, http_request.get_method());
-    HttpResponse http_response;
-    try {
-        std::string root = this->server_settings->get_root(url);
-        http_response = http_handler(http_request, root);
-        this->file_fd = open((root + url).c_str(), O_RDONLY);
-        if (this->file_fd == -1) {
-            this->file_fd = open(PAGE_404, O_RDONLY);
-            this->write_to_log(ERROR_404_NOT_FOUND);
-        }
-    } catch (std::exception &e) {
-        http_response = http_handler(http_request);
+    HttpResponse response = http_handler(request_, location_.root);
+    if (response.get_status() == 404) {
         this->file_fd = open(PAGE_404, O_RDONLY);
         this->write_to_log(ERROR_404_NOT_FOUND);
+    } else {
+        this->file_fd = open((location_.root + request_.get_url()).c_str(), O_RDONLY);
     }
-    this->response = http_response.get_string();
-    this->request.clear();
-
+    this->response = response.get_string();
+    this->line_.clear();
 
     return true;
 }
-
 
 bool ClientConnection::send_http_header_response() {
     bool is_write_data = false;
@@ -150,7 +136,6 @@ bool ClientConnection::send_http_header_response() {
         is_write_data = true;
     }
 
-
     if (write_result == -1) {
         this->stage = ERROR;
         this->write_to_log(ERROR_SEND_RESPONSE);
@@ -163,7 +148,6 @@ bool ClientConnection::send_http_header_response() {
 
     return false;
 }
-
 
 bool ClientConnection::send_file() {
     bool is_write_data = false;
@@ -194,17 +178,16 @@ bool ClientConnection::send_file() {
     return false;
 }
 
-
 void ClientConnection::set_method() {
-    if (this->request.substr(0, 3) == "GET") {
+    if (this->line_.substr(0, 3) == "GET") {
         this->method = GET;
-    } else if (this->request.substr(0, 4) == "POST") {
+    } else if (this->line_.substr(0, 4) == "POST") {
         this->method = POST;
     }
 }
 
 bool ClientConnection::is_end_request() {
-    size_t pos = this->request.find("\r\n\r\n");
+    size_t pos = this->line_.find("\r\n\r\n");
     return pos != std::string::npos;
 }
 
@@ -217,7 +200,8 @@ void ClientConnection::write_to_log(log_messages_t log_type, std::string url, st
                                     << "]";
             break;
         case INFO_CONNECTION_FINISHED:
-            BOOST_LOG_TRIVIAL(info) << "Connection finished successfully [WORKER PID " << getpid() << "]" << " [CLIENT SOCKET "
+            BOOST_LOG_TRIVIAL(info) << "Connection finished successfully [WORKER PID " << getpid() << "]"
+                                    << " [CLIENT SOCKET "
                                     << this->sock << "]";
             break;
         case ERROR_404_NOT_FOUND:
@@ -249,4 +233,20 @@ void ClientConnection::write_to_log(log_messages_t log_type, std::string url, st
 
 clock_t ClientConnection::get_timeout() {
     return this->timeout;
+}
+
+ClientConnection::connection_stages_t ClientConnection::process_location() {
+    std::string url = request_.get_url();
+    this->write_to_log(INFO_NEW_CONNECTION, url, request_.get_method());
+    HttpResponse http_response;
+    try {
+        location_ = this->server_settings->get_location(url);
+    } catch (std::exception& e) {
+        this->write_to_log(ERROR_404_NOT_FOUND);
+        return FORM_HTTP_HEADER_RESPONSE;
+    }
+    if (location_.is_proxy) {
+        return PASS_TO_PROXY;
+    }
+    return FORM_HTTP_HEADER_RESPONSE;
 }

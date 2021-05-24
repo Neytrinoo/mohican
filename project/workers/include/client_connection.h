@@ -3,6 +3,7 @@
 #include <string>
 #include <ctime>
 
+#include "http_request.h"
 #include "server_settings.h"
 
 
@@ -36,6 +37,8 @@ private:
         FORM_HTTP_HEADER_RESPONSE,
         SEND_HTTP_HEADER_RESPONSE,
         SEND_FILE,
+        BAD_REQUEST,
+        PASS_TO_PROXY,
         ERROR
     } connection_stages_t;
 
@@ -62,7 +65,10 @@ private:
 
     class ServerSettings *server_settings;
 
-    std::string request;
+    char last_char_;
+    std::string line_;
+    HttpRequest request_;
+    location_t location_;
     std::string response;
 
     int response_pos = 0;
@@ -70,14 +76,14 @@ private:
 
     // return true if their connection processing stage is finished
     bool get_request();
-
+    connection_stages_t process_location();
     bool form_http_header_response();
 
     bool send_http_header_response();
 
     bool send_file();
 
-    bool is_end_request();  // check if the request has ended
+    bool is_end_request();  // check if the line_ has ended
 
     void set_method();
 

@@ -5,7 +5,7 @@
 #include "http_request.h"
 #include "string_to_lower.h"
 
-std::string &HttpRequest::get_method() {
+std::string& HttpRequest::get_method() {
     return method_;
 }
 
@@ -13,8 +13,7 @@ std::string HttpRequest::get_method() const {
     return std::string(method_);
 }
 
-
-std::string &HttpRequest::get_url() {
+std::string& HttpRequest::get_url() {
     return url_;
 }
 
@@ -22,8 +21,7 @@ std::string HttpRequest::get_url() const {
     return std::string(url_);
 }
 
-
-HttpRequest::HttpRequest(const std::string &str) {
+HttpRequest::HttpRequest(const std::string& str) {
     size_t lf_pos = str.find('\n');
     if (lf_pos == std::string::npos) {
         throw DelimException("Line feed not found");
@@ -80,17 +78,15 @@ HttpRequest::HttpRequest(const std::string &str) {
 }
 
 void HttpRequest::add_line(const std::string& line) {
-    if (!request_ended_) {
-        if (!first_line_added_) {
-            add_first_line(line);
-            return;
-        }
-        if (!headers_read_) {
-            add_header(line);
-            return;
-        }
-        request_ended_ = true;
+    if (!first_line_added_) {
+        add_first_line(line);
+        return;
     }
+    if (!headers_read_) {
+        add_header(line);
+        return;
+    }
+    request_ended_ = true;
 }
 
 void HttpRequest::add_first_line(const std::string& line) {
@@ -132,7 +128,7 @@ void HttpRequest::add_header(const std::string& line) {
     size_t lf_pos;
     lf_pos = line.find('\n', start_pos);
     if (lf_pos == std::string::npos) {
-         throw DelimException("Line feed not found");
+        throw DelimException("Line feed not found");
     }
     if (lf_pos == start_pos || line[start_pos] == '\r') {
         headers_read_ = true;

@@ -21,6 +21,7 @@ class HttpResponse : public HttpBase {
 
     std::string get_string();
 
+    int get_status() const;
  private:
     int status_ = 0;
     std::string message_;

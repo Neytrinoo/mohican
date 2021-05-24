@@ -153,3 +153,11 @@ void HttpRequest::add_header(const std::string& line) {
     string_to_lower(header_value);
     headers_[header_name] = header_value;
 }
+
+bool HttpRequest::first_line_added() const {
+    return first_line_added_;
+}
+
+bool HttpRequest::requst_ended() const {
+    return request_ended_;
+}

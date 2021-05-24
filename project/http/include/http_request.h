@@ -19,6 +19,9 @@ class HttpRequest : public HttpBase {
 
     void add_line(const std::string &line);
 
+    bool first_line_added() const;
+    bool requst_ended() const;
+
  private:
     void add_first_line(const std::string &line);
     void add_header(const std::string &line);

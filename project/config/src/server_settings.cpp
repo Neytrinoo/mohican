@@ -140,45 +140,45 @@ void ServerSettings::set_location_property(int number_of_property, std::string v
 }
 
 
-std::string ServerSettings::get_root(std::string url) {
+location_t ServerSettings::get_location(std::string url) {
     auto not_case_sensitive_url = url;
     std::transform(not_case_sensitive_url.begin(), not_case_sensitive_url.end(),
                    not_case_sensitive_url.begin(), [](unsigned char c) -> unsigned char { return std::tolower(c); });
 
     for (auto exact_match_url : exact_match_urls) {
         if (!exact_match_url.case_sensitive && not_case_sensitive_url == exact_match_url.url) {
-            return exact_match_url.root;
+            return exact_match_url;
         }
         if (url == exact_match_url.url) {
-            return exact_match_url.root;
+            return exact_match_url;
         }
     }
 
     for (auto preferential_match_url : preferential_prefix_urls) {
         if (!preferential_match_url.case_sensitive && not_case_sensitive_url.find(preferential_match_url.url) == 0) {
-            return preferential_match_url.root;
+            return preferential_match_url;
         }
         if (url.find(preferential_match_url.url) == 0) {
-            return preferential_match_url.root;
+            return preferential_match_url;
         }
     }
 
     for (auto regex_match_url : regex_match_urls) {
         std::regex regex(regex_match_url.url);
         if (!regex_match_url.case_sensitive && std::regex_match(not_case_sensitive_url.cbegin(), not_case_sensitive_url.cend(), regex)) {
-            return regex_match_url.root;
+            return regex_match_url;
         }
         if (std::regex_match(url.cbegin(), url.cend(), regex)) {
-            return regex_match_url.root;
+            return regex_match_url;
         }
     }
 
     for (auto prefix_match_url : prefix_match_urls) {
         if (!prefix_match_url.case_sensitive && not_case_sensitive_url.find(prefix_match_url.url) == 0) {
-            return prefix_match_url.root;
+            return prefix_match_url;
         }
         if (url.find(prefix_match_url.url) == 0) {
-            return prefix_match_url.root;
+            return prefix_match_url;
         }
     }
 

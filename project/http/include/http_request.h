@@ -17,7 +17,16 @@ class HttpRequest : public HttpBase {
     std::string &get_url();
     std::string get_url() const;
 
+    void add_line(const std::string &line);
+
+ private:
+    void add_first_line(const std::string &line);
+    void add_header(const std::string &line);
+
  private:
     std::string method_;
     std::string url_;
+    bool first_line_added_ = false;
+    bool headers_read_ = false;
+    bool request_ended_ = false;
 };

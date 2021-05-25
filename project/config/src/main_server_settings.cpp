@@ -49,10 +49,12 @@ void MainServerSettings::set_property(int number_of_property, std::string value)
             break;
         case ACCESS_LOG_NUMBER:
             this->access_log_file = value.substr(begin, value_length);
+            this->server.set_property(this->server.get_number_of_property("access_log"), this->access_log_file);
             this->is_access_log_file = true;
             break;
         case ERROR_LOG_NUMBER:
             this->error_log_file = value.substr(begin, value_length);
+            this->server.set_property(this->server.get_number_of_property("error_log"), this->error_log_file);
             this->is_error_log_file = true;
             break;
     }

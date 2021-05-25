@@ -34,9 +34,9 @@ private:
     // the value of the elements enum is written the index of this key in the array of properties
     enum numbers_of_properties {
         LISTEN_NUMBER = 0,
-        ACCESS_LOG_NUMBER = 1,
-        ERROR_LOG_NUMBER = 2,
-        ROOT_NUMBER = 3,
+        ROOT_NUMBER = 1,
+        ACCESS_LOG_NUMBER = 2,
+        ERROR_LOG_NUMBER = 3,
         SERVERNAME_NUMBER = 5
     };
 

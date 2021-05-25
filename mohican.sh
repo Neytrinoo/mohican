@@ -21,7 +21,12 @@ start() {
     echo "Server already started"
     exit 1
   else
+    touch pid_file.txt
+    rm -rf access.log
+    rm -rf error.log
     echo "Starting $SERVER_NAME Server..."
+    touch access.log
+    touch error.log
     "$MOHICANS_HOME"/mohican.out
     SERVER_STATUS="on"
     exit 0

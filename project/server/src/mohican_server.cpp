@@ -20,8 +20,9 @@ MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
     this->count_workflows = this->mohican_settings.get_count_workflows();
     this->server = this->mohican_settings.get_server();
-    vector_logs.push_back(&access_log);
     vector_logs.push_back(&error_log);
+    vector_logs.push_back(&access_log);
+    write_to_logs("SERVER STARTING...", INFO);
 }
 
 bl::trivial::severity_level MohicanServer::cast_types_logs_level(std::string lvl) {
@@ -43,13 +44,13 @@ void MohicanServer::write_to_logs(std::string message, bl::trivial::severity_lev
     }
 }
 
-void MohicanServer::init_logs(bool flush_flag) {
+/*void MohicanServer::init_logs(bool flush_flag) {
     MohicanLog access_log("access", flush_flag, cast_types_logs_level(access_log_level));
     MohicanLog error_log("error", flush_flag, cast_types_logs_level(error_log_level));
     vector_logs.push_back(&access_log);
     vector_logs.push_back(&error_log);
     write_to_logs("SERVER STARTING...", INFO);
-}
+}*/
 
 int MohicanServer::daemonize(status_server_action server_action) {
     if (server_action == START_SERVER) {
@@ -159,7 +160,7 @@ int MohicanServer::add_work_processes(status_server_action server_action) {
 }
 
 int MohicanServer::server_start() {
-    init_logs(true);
+    //init_logs(true);
 
     if (daemonize(START_SERVER) != 0) {
         write_to_logs("ERROR IN SERVER DAEMONIZE", ERROR);
@@ -339,7 +340,10 @@ int MohicanServer::apply_config(status_server_action server_action, action_level
 
     if (!(access_lvl_before_reload == access_log_level && error_lvl_before_reload == error_log_level)) {
         vector_logs.clear();
-        init_logs(false);
+        //init_logs(false);
+        access_log = MohicanLog ("access", false, cast_types_logs_level(access_log_level));
+        error_log = MohicanLog ("error", false, cast_types_logs_level(error_log_level));
+        //TODO: connect with config
     }
 
     if (count_workflows > workers_pid.size() && workers_pid.size() != 1) {

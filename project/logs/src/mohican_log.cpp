@@ -5,7 +5,7 @@ MohicanLog::MohicanLog(std::string file, bool flush_flag, bl::trivial::severity_
 
     auto backend = boost::make_shared<backend_type>(
             kw::file_name = file + ".log",
-            kw::auto_flush = key_flush);
+            kw::auto_flush = flush_flag);
 
     auto sink = boost::make_shared<sink_type>(backend);
     sink->set_formatter(bl::parse_formatter(g_format));

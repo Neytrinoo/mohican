@@ -20,7 +20,12 @@ start() {
     echo "Server has already started!"
     exit 1
   else
-    echo "Starting $SERVER_NAME server..."
+    touch pid_file.txt
+    rm -rf access.log
+    rm -rf error.log
+    echo "Starting $SERVER_NAME Server..."
+    touch access.log
+    touch error.log
     "$MOHICANS_HOME"/mohican.out
     echo "Server started!"
     exit 0
@@ -55,15 +60,27 @@ stop_hard() {
   fi
 }
 
-reload() {
+reload_soft() {
   if [ ! -f "$PID_FILE" ]; then
     echo "Server has not started yet!"
     exit 1
   else
-    echo "Reloading $SERVER_NAME server..."
+    echo "Server reloading..."
     get_pid
     :> "$PID_FILE"
     kill -13 "$PID_MASTER_PROCESS"
+  fi
+}
+
+reload_hard() {
+  if [ ! -f "$PID_FILE" ]; then
+    echo "Server has not started yet!"
+    exit 1
+  else
+    echo "Server reloading..."
+    get_pid
+    :> "$PID_FILE"
+    kill -14 "$PID_MASTER_PROCESS"
   fi
 }
 
@@ -98,6 +115,19 @@ create_config() {
       ;;
     esac
     echo "Usage : <hard|soft>";
+    ;;
+    reload)
+    shift
+    case $1 in
+      soft)
+        reload_soft
+        exit 0
+      ;;
+      hard)
+        reload_hard
+        exit 0
+      ;;
+    esac
     ;;
   	status)
 	    status

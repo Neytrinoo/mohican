@@ -5,6 +5,7 @@ MohicanLog::MohicanLog(std::string file, bool flush_flag, bl::trivial::severity_
 
     auto backend = boost::make_shared<backend_type>(
             kw::file_name = file + ".log",
+            kw::open_mode = std::ios::app,
             kw::auto_flush = flush_flag);
 
     auto sink = boost::make_shared<sink_type>(backend);

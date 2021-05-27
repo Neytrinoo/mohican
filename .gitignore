@@ -1,6 +1,6 @@
 *.exe
 *.out
-.idea/
-cmake-build-debug/
 *.log
 *.txt
+.idea/
+cmake-build-debug/

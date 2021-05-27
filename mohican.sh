@@ -37,12 +37,12 @@ stop_soft() {
     echo "Server has not started yet!"
     exit 1
   else
-	  echo "Stopping soft $SERVER_NAME server..."
-	  get_pid
-	  kill -1 "$PID_MASTER_PROCESS"
-	  echo "Server stopped!"
-	  rm "$PID_FILE"
-	  exit 0
+    echo "Stopping soft $SERVER_NAME server..."
+    get_pid
+    kill -1 "$PID_MASTER_PROCESS"
+    echo "Server stopped!"
+    rm "$PID_FILE"
+    exit 0
 	fi
 }
 
@@ -65,7 +65,7 @@ reload_soft() {
     echo "Server has not started yet!"
     exit 1
   else
-    echo "Server reloading..."
+    echo "Reloading soft $SERVER_NAME server..."
     get_pid
     :> "$PID_FILE"
     kill -13 "$PID_MASTER_PROCESS"
@@ -77,7 +77,7 @@ reload_hard() {
     echo "Server has not started yet!"
     exit 1
   else
-    echo "Server reloading..."
+    echo "Reloading hard $SERVER_NAME server..."
     get_pid
     :> "$PID_FILE"
     kill -14 "$PID_MASTER_PROCESS"
@@ -128,6 +128,7 @@ create_config() {
         exit 0
       ;;
     esac
+    echo "Usage : <hard|soft>";
     ;;
   	status)
 	    status

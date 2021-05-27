@@ -3,11 +3,8 @@
 import subprocess
 import matplotlib.pyplot as plt
 
-paths = [
-    './mohican.log',
-]
 
-def autolabel(rects, labels=None, height_factor=1.01):
+def add_label(rects, ax, labels=None, height_factor=1.01):
     for i, rect in enumerate(rects):
         height = rect.get_height()
         if labels is not None:
@@ -21,27 +18,37 @@ def autolabel(rects, labels=None, height_factor=1.01):
                 '{}'.format(label),
                 ha='center', va='bottom')
 
-names = []
-values = []
 
-for path in paths:
-    number = int(subprocess.check_output('cat {} | grep "New connection" | wc -l'.format(path), shell=True))
+def main():
+    paths = [
+        './mohican.log',
+    ]
 
-    names.append('№' + str(path.index(path) + 1))
-    values.append(number)
+    names = []
+    values = []
 
-fig,ax = plt.subplots()
+    for path in paths:
+        number = int(subprocess.check_output('cat {} | grep "New connection" | wc -l'.format(path), shell=True))
 
-ax.bar(names, values)
+        names.append('№{}'.format(path.index(path) + 1))
+        values.append(number)
 
-ax.set_facecolor('seashell')
-ax.set_xlabel('upstreams')
-ax.set_ylabel('number of requests')
+    fig,ax = plt.subplots()
 
-fig.set_facecolor('floralwhite')
-fig.set_figwidth(8)
-fig.set_figheight(6)
+    ax.bar(names, values)
 
-autolabel(ax.patches, values, height_factor=1)
+    ax.set_facecolor('seashell')
+    ax.set_xlabel('upstreams', fontsize=12)
+    ax.set_ylabel('number of requests', fontsize=12)
 
-plt.show()
+    fig.set_facecolor('floralwhite')
+    fig.set_figwidth(8)
+    fig.set_figheight(6)
+
+    add_label(ax.patches, ax, values, height_factor=1.01)
+
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

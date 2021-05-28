@@ -16,7 +16,7 @@ get_pid() {
 }
 
 start() {
-  if [ -f "$PID_FILE" ]; then
+  if [ -f "$PID_FILE" ] && [ $(head -n 1 "$PID_FILE") ]; then
     echo "Server has already started!"
     exit 1
   else
@@ -33,7 +33,7 @@ start() {
 }
 
 stop_soft() {
-  if [ ! -f "$PID_FILE" ]; then
+  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -47,7 +47,7 @@ stop_soft() {
 }
 
 stop_hard() {
-  if [ ! -f "$PID_FILE" ]; then
+  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -61,7 +61,7 @@ stop_hard() {
 }
 
 reload_soft() {
-  if [ ! -f "$PID_FILE" ]; then
+  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -73,7 +73,7 @@ reload_soft() {
 }
 
 reload_hard() {
-  if [ ! -f "$PID_FILE" ]; then
+  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -86,7 +86,7 @@ reload_hard() {
 
 status() {
 # shellcheck disable=SC2046
-  if [ -f "$PID_FILE" ]; then
+  if [ -f "$PID_FILE" ] && [ $(head -n 1 "$PID_FILE") ]; then
     echo "$SERVER_NAME is running!"
   else
     echo "$SERVER_NAME is down!"
@@ -142,12 +142,12 @@ create_config() {
       fi
     ;;
 
-	  *)
-	    if [ -f "$PID_FILE" ]; then
-	      echo "Usage : <stop|reload|status>";
-	    else
-	      echo "Usage : <start|status|create>";
-	    fi
-	  ;;
+    *)
+      if [ -f "$PID_FILE" ]; then
+        echo "Usage : <stop|reload|status>";
+      else
+        echo "Usage : <start|status|create>";
+      fi
+    ;;
   esac
 exit 0

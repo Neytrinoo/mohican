@@ -31,6 +31,16 @@ $ sudo ./mohican.sh status
 $ sudo ./mohican.sh reload
 ```
 
+#### Reload hard
+```
+$ sudo ./mohican.sh reload hard
+```
+
+#### Reload soft
+```
+$ sudo ./mohican.sh reload soft
+```
+
 ### Stop mohican web server
 
 #### Stop hard

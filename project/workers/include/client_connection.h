@@ -73,7 +73,7 @@ private:
     char last_char_;
     std::string line_;
     HttpRequest request_;
-    location_t location_;
+    location_t *location_ = nullptr;
     std::string response;
 
     int response_pos = 0;

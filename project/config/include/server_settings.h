@@ -84,7 +84,7 @@ public:
 
     std::string get_error_log_filename();
 
-    location_t get_location(std::string url);
+    location_t *get_location(std::string &url);
 
     void print_properties();
 

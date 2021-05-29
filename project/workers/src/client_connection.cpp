@@ -16,13 +16,15 @@
 #include "http_response.h"
 #include "http_handle.h"
 
-#define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
-#define PAGE_404 "public/404.html" // потом изменить
-#define FOR_404_RESPONSE "/sadfsadf/sadfsaf/asdfsaddf"
+#define PAGE_404 "public/404.html"
+#define LENGTH_LINE_FOR_RESERVE 256
 
-ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs) :
-        sock(sock), server_settings(server_settings), vector_logs(vector_logs) {}
+ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings,
+                                   std::vector<MohicanLog *> &vector_logs) :
+        sock(sock), server_settings(server_settings), vector_logs(vector_logs) {
+
+}
 
 connection_status_t ClientConnection::connection_processing() {
     if (this->stage == ERROR_STAGE) {
@@ -30,32 +32,17 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (this->stage == GET_REQUEST) {
-        if (!get_request() && clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
+        if (get_request()) {
+            if (this->stage == GET_REQUEST) {
+                this->make_response_header(true);
+            } else {
+                this->make_response_header(false);
+            }
+            this->stage = SEND_HTTP_HEADER_RESPONSE;
+        } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
             this->message_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
         }
-        try {
-            if (last_char_ == '\n') {
-                request_.add_line(line_);
-                line_.clear();
-            }
-        } catch (std::exception& e) {
-            this->message_to_log(ERROR_BAD_REQUEST);
-            // TODO: добавить обработку BAD REQUEST запроса (какой-то дефолтный ответ и страничка)
-            stage = BAD_REQUEST;
-        }
-        if (request_.first_line_added()) {
-            stage = process_location();
-        }
-    }
-
-    if (stage == ROOT_FOUND) {
-        make_response_header(true);
-        stage = SEND_HTTP_HEADER_RESPONSE;
-    }
-    if (stage == ROOT_NOT_FOUND) {
-        make_response_header(false);
-        stage = SEND_HTTP_HEADER_RESPONSE;
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -83,10 +70,24 @@ connection_status_t ClientConnection::connection_processing() {
 bool ClientConnection::get_request() {
     bool is_read_data = false;
     int result_read;
+    this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
     while ((result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->line_.push_back(last_char_);
-        if (this->line_.size() >= MAX_METHOD_LENGTH) {
-            this->set_method();
+        if (this->last_char_ == '\n') {
+            this->request_.add_line(line_);
+            this->line_.clear();
+            this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
+            if (this->location_ == nullptr) {
+                this->stage = this->process_location();
+                if (this->stage == PASS_TO_PROXY) {
+                    // TODO: реализовать проксирование
+                } else if (this->stage == ROOT_FOUND) {
+                    // если root найден, продолжаем обрабатывать запрос через get_request
+                    this->stage = GET_REQUEST;
+                } else {
+                    return true;
+                }
+            }
         }
         is_read_data = true;
     }
@@ -109,8 +110,8 @@ bool ClientConnection::get_request() {
 
 bool ClientConnection::make_response_header(bool root_found) {
     if (root_found) {
-        this->response = http_handler(request_, location_.root).get_string();
-        this->file_fd = open((location_.root + request_.get_url()).c_str(), O_RDONLY);
+        this->response = http_handler(request_, location_->root).get_string();
+        this->file_fd = open((location_->root + request_.get_url()).c_str(), O_RDONLY);
     } else {
         this->file_fd = open(PAGE_404, O_RDONLY);
         this->response = http_handler(request_).get_string();
@@ -181,54 +182,44 @@ bool ClientConnection::send_file() {
     return false;
 }
 
-void ClientConnection::set_method() {
-    if (this->line_.substr(0, 3) == "GET") {
-        this->method = GET;
-    } else if (this->line_.substr(0, 4) == "POST") {
-        this->method = POST;
-    }
-}
-
-bool ClientConnection::is_end_request() {
-    size_t pos = this->line_.find("\r\n\r\n");
-    return pos != std::string::npos;
-}
 
 void ClientConnection::message_to_log(log_messages_t log_type, std::string url, std::string method) {
     switch (log_type) {
         case INFO_NEW_CONNECTION:
             this->write_to_logs("New connection [METHOD " + method + "] [URL "
-                                    + url
-                                    + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " + std::to_string(this->sock)
-                                    + "]", INFO);
+                                + url
+                                + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                                std::to_string(this->sock)
+                                + "]", INFO);
             break;
         case INFO_CONNECTION_FINISHED:
-            this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" + " [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", INFO);
+            this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" +
+                                " [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", INFO);
             break;
         case ERROR_404_NOT_FOUND:
             this->write_to_logs("404 NOT FOUND [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                     + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_TIMEOUT:
             this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_READING_REQUEST:
             this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_SEND_RESPONSE:
             this->write_to_logs("Send response error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_SEND_FILE:
             this->write_to_logs("Send file error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_BAD_REQUEST:
             this->write_to_logs("Bad request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                    + std::to_string(this->sock) + "]", ERROR);
+                                + std::to_string(this->sock) + "]", ERROR);
             break;
     }
 }
@@ -243,17 +234,17 @@ ClientConnection::connection_stages_t ClientConnection::process_location() {
     HttpResponse http_response;
     try {
         location_ = this->server_settings->get_location(url);
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         return ROOT_NOT_FOUND;
     }
-    if (location_.is_proxy) {
+    if (location_->is_proxy) {
         return PASS_TO_PROXY;
     }
     return ROOT_FOUND;
 }
 
 void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
-    for (auto i : vector_logs) {
+    for (auto &i : vector_logs) {
         i->log(message, lvl);
     }
 }

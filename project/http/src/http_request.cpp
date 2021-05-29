@@ -78,6 +78,10 @@ HttpRequest::HttpRequest(const std::string& str) {
 }
 
 void HttpRequest::add_line(const std::string& line) {
+    if (line.length() == 2 && line[0] == '\r') {
+        request_ended_ = true;
+        return;
+    }
     if (!first_line_added_) {
         add_first_line(line);
         return;

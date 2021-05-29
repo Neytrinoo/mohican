@@ -27,9 +27,6 @@ $ sudo ./mohican.sh status
 ```
 
 ### Reload mohican web server
-```
-$ sudo ./mohican.sh reload
-```
 
 #### Reload hard
 ```

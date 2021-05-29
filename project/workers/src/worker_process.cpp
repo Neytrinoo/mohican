@@ -29,7 +29,7 @@ WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_setti
 
 void WorkerProcess::run() {
     static struct epoll_event ev, events[EPOLL_SIZE];
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
 
     int epoll_fd = epoll_create(EPOLL_SIZE);
     ev.data.fd = this->listen_sock;
@@ -50,7 +50,7 @@ void WorkerProcess::run() {
                 client = accept(this->listen_sock, NULL, NULL);
                 fcntl(client, F_SETFL, fcntl(client, F_GETFL, 0) | O_NONBLOCK);
                 ev.data.fd = client;
-                ev.events = EPOLLIN | EPOLLET;
+                ev.events = EPOLLIN;
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
                 this->client_connections[client] = ClientConnection(client, this->server_settings, vector_logs);
             } else {  // if the event happened on a client socket

@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <unistd.h>
-#include <ctime>
 #include <iostream>
 #include <csignal>
 #include <sys/socket.h>
@@ -14,35 +13,85 @@
 
 int process_soft_stop = 0;
 int process_hard_stop = 0;
-int process_reload = 0;
+int process_soft_reload = 0;
+int process_hard_reload = 0;
 
 MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
     this->count_workflows = this->mohican_settings.get_count_workflows();
     this->server = this->mohican_settings.get_server();
+    vector_logs.push_back(&error_log);
+    vector_logs.push_back(&access_log);
+    write_to_logs("SERVER STARTING...", INFO);
 }
 
-int MohicanServer::daemonize() {
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
+bl::trivial::severity_level MohicanServer::cast_types_logs_level(std::string lvl) {
+    if (lvl == "info") {
+        return INFO;
+    }
+    if (lvl == "debug") {
+        return DEBUG;
+    }
+    if (lvl == "trace") {
+        return TRACE;
+    }
+    return ERROR;
+}
 
-    pid_t pid = fork();
+void MohicanServer::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
+    for (auto i : vector_logs) {
+        i->log(message, lvl);
+    }
+}
 
-    if (pid == -1) {
-        return -1;
+int MohicanServer::daemonize(status_server_action server_action) {
+    if (server_action == START_SERVER) {
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+
+        pid_t pid = fork();
+
+        if (pid == -1) {
+            return -1;
+        }
+
+        if (pid != 0) {  // Возвращается нуль процессу-потомку и пид чилда мастеру
+            exit(0);
+        }
+
+        setsid();
+
+        return 0;
     }
 
-    if (pid != 0) {  // Возвращается нуль процессу-потомку и пид чилда мастеру
-        exit(0);
+    if (server_action == RELOAD_SERVER) {
+        pid_t pid_child_of_old_master = fork();
+
+        if (pid_child_of_old_master == -1) {
+            return -1;
+        }
+        // check it isn't old master
+        if (getppid() != 1) {
+            pid_t pid_to_finish = getppid();
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
+            pid_t new_master_pid = fork();
+
+            if (new_master_pid == -1) {
+                return -1;
+            }
+            if (getppid() == pid_to_finish) {
+                exit(0);
+            }
+        }
+        return int(getpid());
     }
-
-    setsid();
-
     return 0;
 }
 
-int MohicanServer::fill_pid_file() {
+int MohicanServer::fill_pid_file(status_server_action server_action) {
     std::ofstream stream_to_pid_file;
     stream_to_pid_file.open("pid_file.txt", std::ios::out);
 
@@ -51,8 +100,17 @@ int MohicanServer::fill_pid_file() {
     }
 
     stream_to_pid_file << getpid() << std::endl;
-    for (auto i : workers_pid) {
-        stream_to_pid_file << i << std::endl;
+
+    if (server_action == START_SERVER) {
+        for (auto i : workers_pid) {
+            stream_to_pid_file << i << std::endl;
+        }
+    }
+
+    if (server_action == RELOAD_SERVER) {
+        for (auto i : new_workers_pid) {
+            stream_to_pid_file << i << std::endl;
+        }
     }
 
     stream_to_pid_file.close();
@@ -60,16 +118,31 @@ int MohicanServer::fill_pid_file() {
     return 0;
 }
 
-int MohicanServer::add_work_processes() {
-    for (int i = 0; i < mohican_settings.get_count_workflows(); ++i) {
+int MohicanServer::add_work_processes(status_server_action server_action) {
+    int  count_work_processes;
+    if (server_action == START_SERVER) {
+        count_work_processes = mohican_settings.get_count_workflows();
+    }
+    if (server_action == RELOAD_SERVER) {
+        count_work_processes = new_mohican_settings.get_count_workflows();
+    }
+
+    //TODO: check on clear vector_pid
+
+    for (int i = 0; i < count_work_processes; ++i) {
         pid_t pid = fork();
         if (pid == -1) {
             return -1;
         }
         if (pid != 0) {
-            workers_pid.push_back(pid);
+            if (server_action == RELOAD_SERVER) {
+                new_workers_pid.push_back(pid);
+            }
+            if (server_action == START_SERVER) {
+                workers_pid.push_back(pid);
+            }
         } else {
-            WorkerProcess worker(this->listen_sock, &server);
+            WorkerProcess worker(this->listen_sock, &server, vector_logs);
             worker.run();
             break;
         }
@@ -78,69 +151,33 @@ int MohicanServer::add_work_processes() {
     return 0;
 }
 
-int MohicanServer::log_open(std::string path_to_log, std::string level_log, bool key) {
-    if (level_log != "info" && level_log != "debug" && level_log != "error") {
-        return -1;
-    }
-
-    boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
-
-    logger_t lg;
-
-    boost::log::add_file_log(
-            boost::log::keywords::auto_flush = key,
-            boost::log::keywords::file_name = path_to_log,
-            boost::log::keywords::format = "[%TimeStamp%] [%Severity%] %Message%" /*[%Uptime%]*/
-    );
-
-    if (level_log != "debug") {
-        if (level_log == "info") {
-            boost::log::core::get()->set_filter(boost::log::trivial::severity == boost::log::trivial::info);
-        } else {
-            boost::log::core::get()->set_filter(boost::log::trivial::severity == boost::log::trivial::error);
-        }
-    }
-
-    boost::log::add_common_attributes();
-
-    logging::core::get()->add_global_attribute("Uptime", attrs::timer());
-
-    BOOST_LOG_TRIVIAL(info) << "SERVER STARTED!";
-
-    return 0;
-}
-
 int MohicanServer::server_start() {
-    if (daemonize() != 0) {
+    if (daemonize(START_SERVER) != 0) {
+        write_to_logs("ERROR IN SERVER DAEMONIZE", ERROR);
         return -1;
     }
-
 
     if (!this->bind_listen_sock()) {
+        write_to_logs("ERROR IN BIND SOCKET", ERROR);
         return -1;
     }
 
-    // TODO: добавить в конфиг уровни логгирования
-    if (log_open(mohican_settings.get_log_filename(), mohican_settings.get_log_level(), true) != 0) {
+    if (add_work_processes(START_SERVER)!= 0) {
+        write_to_logs("ERROR IN ADDING WORK PROCESSES", ERROR);
         return -1;
     }
 
-    if (add_work_processes() != 0) {
+    if (fill_pid_file(START_SERVER) == -1) {
+        write_to_logs("ERROR IN FILL PID FILE", ERROR);
         return -1;
     }
 
-    if (fill_pid_file() == -1) {
-        return -1;
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "Worker processes (" << this->workers_pid.size() << ") successfully started";
+    write_to_logs("Worker processes (" + std::to_string(this->workers_pid.size()) + ") successfully started", INFO);
 
     process_setup_signals();  // установка нужных обработчиков сигналов
 
-    int number_process = 1;
-    std::string status = "not_exited";
+    while (process_soft_stop != 1 && process_hard_stop != 1 && process_soft_reload != 1 && process_hard_reload != 1);
 
-    while (process_soft_stop != 1 && process_hard_stop != 1 && process_reload != 1);
     if (process_soft_stop == 1) {
         server_stop(SOFT_LEVEL);
     }
@@ -149,8 +186,12 @@ int MohicanServer::server_start() {
         server_stop(HARD_LEVEL);
     }
 
-    if (process_reload == 1) {
-        server_reload();
+    if (process_soft_reload == 1) {
+        server_reload(SOFT_LEVEL);
+    }
+
+    if (process_hard_reload == 1) {
+        server_reload(HARD_LEVEL);
     }
 
     return 0;
@@ -165,7 +206,11 @@ void MohicanServer::sigint_handler(int sig) {
 }
 
 void MohicanServer::sigpipe_handler(int sig) {
-    process_reload = 1;
+    process_soft_reload = 1;
+}
+
+void MohicanServer::sigalrm_handler(int sig) {
+    process_hard_reload = 1;
 }
 
 int MohicanServer::process_setup_signals() {
@@ -178,12 +223,14 @@ int MohicanServer::process_setup_signals() {
     sigaction(SIGHUP, &act, nullptr);
     act.sa_handler = sigint_handler;
     sigaction(SIGINT, &act, nullptr);
+    act.sa_handler = sigalrm_handler;
+    sigaction(SIGALRM, &act, nullptr);
     return 0;
 }
 
-int MohicanServer::server_stop(stop_level_t level) {
+int MohicanServer::server_stop(action_level_t level) {
     if (level == HARD_LEVEL) {
-        BOOST_LOG_TRIVIAL(warning) << "HARD SERVER STOP...";
+        write_to_logs("HARD SERVER STOP...", WARNING);
         close(this->listen_sock);
 
         int status;
@@ -194,12 +241,12 @@ int MohicanServer::server_stop(stop_level_t level) {
             waitpid(i, &status, 0);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
+        write_to_logs("SERVER STOPPED", INFO);
         exit(0);
     }
 
     if (level == SOFT_LEVEL) {
-        BOOST_LOG_TRIVIAL(warning) << "SOFT SERVER STOP...";
+        write_to_logs("SOFT SERVER STOP...", WARNING);
 
         int status;
         for (auto &i : this->workers_pid) {
@@ -210,42 +257,97 @@ int MohicanServer::server_stop(stop_level_t level) {
         }
 
         close(this->listen_sock);
-        BOOST_LOG_TRIVIAL(info) << "SERVER STOPPED!";
+        write_to_logs("SERVER STOPPED", INFO);
         exit(0);
     }
 
-    BOOST_LOG_TRIVIAL(error) << "ERROR! SERVER NOT STOPPED!";
+    write_to_logs("ERROR! SERVER NOT STOPPED!", ERROR);
 
     return -1;
 }
 
 
-int MohicanServer::server_reload() {
-    BOOST_LOG_TRIVIAL(warning) << "SERVER RELOADING...";
+int MohicanServer::server_reload(action_level_t level) {
+    if (level == HARD_LEVEL) {
+        write_to_logs("HARD SERVER RELOADING...", WARNING);
 
-    MainServerSettings mohican_new_settings;
-    mohican_settings = mohican_new_settings;
-    apply_config();
+        MainServerSettings mohican_new_settings;
+        mohican_settings = mohican_new_settings;
 
-    BOOST_LOG_TRIVIAL(info) << "SERVER RELOADED!";
+        apply_config(RELOAD_SERVER, HARD_LEVEL);
 
-    return 0;
+        write_to_logs("SERVER RELOADED!", INFO);
+        return 0;
+    }
+
+    if (level == SOFT_LEVEL) {
+        write_to_logs("SOFT SERVER RELOADING...", WARNING);
+
+        new_mohican_settings = MainServerSettings();
+
+        pid_t status_daemonize = daemonize(RELOAD_SERVER);
+
+        if (status_daemonize == -1) {
+            return -1;
+        }
+        write_to_logs("SOFT SERVER RELOADING...New master process successfully started", WARNING);
+        // need to us new master process
+        // status daemonize return pid new master process
+        if (getpid() == status_daemonize) {
+
+            apply_config(RELOAD_SERVER, SOFT_LEVEL);
+
+            int status;
+            for (auto &i : this->workers_pid) {
+                kill(i, SIGPOLL);
+            }
+            for (auto &i : this->workers_pid) {
+                waitpid(i, &status, 0);
+            }
+
+            mohican_settings = new_mohican_settings;
+            workers_pid = new_workers_pid;
+            write_to_logs("SERVER RELOADED!", INFO);
+            return 0;
+        }
+    }
+
+    write_to_logs("ERROR IN SERVER RELOADING", ERROR);
+    return -1;
 }
 
-int MohicanServer::apply_config() {
-    log_open(mohican_settings.get_log_filename(), mohican_settings.get_log_level(), false);
+int MohicanServer::apply_config(status_server_action server_action, action_level_t level) {
+    if (level == SOFT_LEVEL) {
+        write_to_logs("SOFT STOP RELOADING...NEW CONFIG APPLYING", WARNING);
+        count_workflows = new_mohican_settings.get_count_workflows();
+        add_work_processes(RELOAD_SERVER);
+        fill_pid_file(RELOAD_SERVER);
+        write_to_logs("Worker processes (" + std::to_string(this->new_workers_pid.size()) + ") successfully started", INFO);
+        return 0;
+    }
 
     // настройка количества рабочих процессов
-    count_workflows = mohican_settings.get_count_workflows();
+    if (level == HARD_LEVEL) {
+        count_workflows = mohican_settings.get_count_workflows();
+        write_to_logs("START SERVER...CONFIG APPLYING", WARNING);
+    }
 
     if (count_workflows == 0) {
-        BOOST_LOG_TRIVIAL(error) << "COUNT WORK PROCESSES MUST BE MORE 0";
+        write_to_logs("COUNT WORK PROCESSES MUST BE MORE 0", ERROR);
         return -1;
+    }
+
+    if (!(access_lvl_before_reload == access_log_level && error_lvl_before_reload == error_log_level)) {
+        vector_logs.clear();
+        //init_logs(false);
+        access_log = MohicanLog ("access", false, cast_types_logs_level(access_log_level));
+        error_log = MohicanLog ("error", false, cast_types_logs_level(error_log_level));
+        //TODO: connect with config
     }
 
     if (count_workflows > workers_pid.size() && workers_pid.size() != 1) {
         for (int i = 0; i < count_workflows - workers_pid.size(); ++i) {
-            add_work_processes();
+            add_work_processes(server_action);
         }
     } else if (count_workflows < workers_pid.size()) {
         pid_t ppid = getppid();
@@ -261,17 +363,15 @@ int MohicanServer::apply_config() {
                         workers_pid.erase(workers_pid.begin() + j);
                     }
                 }
-
                 exit(0);
             }
         }
     }
 
-    // TODO:Проверка апстримов
-    BOOST_LOG_TRIVIAL(warning)
-        << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] not respond to request from worker " << getpid();
-    BOOST_LOG_TRIVIAL(info) << "Successfully connection to upstream [SERVERNAME : Local_host] [IP : 192.89.89.89]";
-    BOOST_LOG_TRIVIAL(error) << "Upstream [SERVERNAME : Local_host] [IP : 192.89.89.89] was added to ban-list";
+    fill_pid_file(RELOAD_SERVER);
+
+    write_to_logs("COUNT WORK PROCESSES WAS SUCCESSFULLY CHECKED", WARNING);
+    write_to_logs("Worker processes (" + std::to_string(this->workers_pid.size()) + ") successfully started", INFO);
 
     return 0;
 }

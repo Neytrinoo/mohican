@@ -8,7 +8,7 @@
 #include "main_server_settings.h"
 #include "config_defines.h"
 
-const std::vector<std::string> ServerSettings::valid_properties = {"listen", "access_log", "error_log", "root",
+const std::vector<std::string> ServerSettings::valid_properties = {"listen", "root", "access_log", "error_log",
                                                                    "location", "servername"};
 
 const std::vector<std::string> ServerSettings::valid_location_properties = {"root", "add_root", "access_log",

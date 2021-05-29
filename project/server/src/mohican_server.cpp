@@ -176,7 +176,9 @@ int MohicanServer::server_start() {
 
     process_setup_signals();  // установка нужных обработчиков сигналов
 
-    while (process_soft_stop != 1 && process_hard_stop != 1 && process_soft_reload != 1 && process_hard_reload != 1);
+    while (process_soft_stop != 1 && process_hard_stop != 1 && process_soft_reload != 1 && process_hard_reload != 1) {
+        sleep(1);
+    }
 
     if (process_soft_stop == 1) {
         server_stop(SOFT_LEVEL);

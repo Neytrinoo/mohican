@@ -74,15 +74,27 @@ void ServerSettings::print_properties() {
     std::cout << "urls" << std::endl;
     for (auto &i : this->exact_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+        for (auto &upstr : i.upstreams) {
+            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+        }
     }
     for (auto &i : this->preferential_prefix_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+        for (auto &upstr : i.upstreams) {
+            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+        }
     }
     for (auto &i : this->regex_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+        for (auto &upstr : i.upstreams) {
+            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+        }
     }
     for (auto &i : this->prefix_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
+        for (auto &upstr : i.upstreams) {
+            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+        }
     }
 
     for (auto &upstream : this->upstreams) {
@@ -154,9 +166,9 @@ void ServerSettings::set_location_property(int number_of_property, std::string v
             }
             break;
         case PROXY_PATH_LOCATION_NUMBER:
-            location.proxy_path = value.substr(begin, value_length);
+            std::string proxy_path = value.substr(begin, value_length);
             location.is_proxy = true;
-            location.upstream = this->get_upstream(location.proxy_path);
+            location.upstreams.push_back(this->get_upstream(proxy_path));
             break;
     }
 }

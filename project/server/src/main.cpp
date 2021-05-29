@@ -13,7 +13,7 @@ int main() {
         return -1;
     }
      */
-    MainServerSettings server("settings/mohican.conf");
+    MainServerSettings server("../settings/mohican.conf");
     server.get_server().print_properties();
 
 

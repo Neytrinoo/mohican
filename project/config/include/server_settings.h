@@ -8,8 +8,7 @@
 typedef struct {
     std::string url;
     std::string root;
-    std::string proxy_path;
-    UpstreamSettings *upstream;
+    std::vector<UpstreamSettings *> upstreams;
     bool case_sensitive;
     bool is_access_log;
     bool is_error_log;

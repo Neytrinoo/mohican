@@ -36,7 +36,6 @@ private:
     } log_messages_t;
 
     class ServerSettings *server_settings;
-    std::map<int, class ClientConnection> client_connections;
     int listen_sock;
     void write_to_log(log_messages_t log_type);
 

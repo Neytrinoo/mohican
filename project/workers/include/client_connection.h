@@ -32,6 +32,8 @@ public:
 
     int get_upstream_sock();
 
+    int get_client_sock();
+
     void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 private:
     int sock;

@@ -257,3 +257,7 @@ void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_
 int ClientConnection::get_upstream_sock() {
     return this->proxy_sock;
 }
+
+int ClientConnection::get_client_sock() {
+    return this->sock;
+}

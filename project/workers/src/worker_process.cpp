@@ -49,17 +49,19 @@ void WorkerProcess::run() {
             if (events[i].data.fd == this->listen_sock) {
                 client = accept(this->listen_sock, NULL, NULL);
                 fcntl(client, F_SETFL, fcntl(client, F_GETFL, 0) | O_NONBLOCK);
-                ev.data.fd = client;
                 ev.events = EPOLLIN;
+                ClientConnection *client_connection = new ClientConnection(client, this->server_settings, vector_logs);
+                ev.data.ptr = (ClientConnection *) client_connection;
+
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
-                this->client_connections[client] = ClientConnection(client, this->server_settings, vector_logs);
             } else {  // if the event happened on a client socket
-                connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
+                ClientConnection *client_connection = (ClientConnection *) events[i].data.ptr;
+                connection_status_t connection_status = client_connection->connection_processing();
                 if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR ||
                     connection_status == ERROR_WHILE_CONNECTION_PROCESSING) {
-                    this->client_connections.erase(events[i].data.fd);
-                    close(events[i].data.fd);
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);
+                    close(client_connection->get_client_sock());
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_client_sock(), &events[i]);
+                    delete client_connection;
 
                     // TODO: сюда вставить подмену ключа
                 }
@@ -70,21 +72,14 @@ void WorkerProcess::run() {
     if (is_soft_stop || is_soft_reload) {
         this->message_to_log(INFO_SOFT_STOP_START);
         for (int i = 0; i < epoll_events_count; ++i) {
-            connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
-            if (connection_status == CONNECTION_PROXY) {
-                ev.data.fd = this->client_connections[events[i].data.fd].get_upstream_sock();
-                ev.events = EPOLLIN;
-                epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
-
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]); // удаляем из отслеживаемых клиентский сокет
-
-
-            }
+            ClientConnection *client_connection = (ClientConnection *) events[i].data.ptr;
+            connection_status_t connection_status = client_connection->connection_processing();
             if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR ||
                 connection_status == ERROR_WHILE_CONNECTION_PROCESSING) {
-                this->client_connections.erase(events[i].data.fd);
-                close(events[i].data.fd);
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);
+                close(client_connection->get_client_sock());
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_client_sock(), &events[i]);
+
+                delete client_connection;
             }
         }
         this->message_to_log(INFO_SOFT_STOP_DONE);

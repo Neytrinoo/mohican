@@ -54,6 +54,7 @@ private:
         READ_BODY_FROM_CLIENT,
         SEND_BODY_TO_PROXY,
         SENT_PROXY_RESPONSE_TO_CLIENT,
+        FAILED_TO_CONNECT,
         ERROR_STAGE
     } connection_stages_t;
 
@@ -103,4 +104,6 @@ private:
     void set_method();
 
     void message_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
+
+    bool connect_to_upstream();
 };

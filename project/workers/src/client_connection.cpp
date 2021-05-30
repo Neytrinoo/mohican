@@ -1,15 +1,16 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <ctime>
-#include <unistd.h>
-#include <fcntl.h>
-#include <exception>
 #include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <boost/log/utility/setup/file.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <ctime>
+#include <exception>
+#include <fcntl.h>
+#include <netdb.h>
+#include <unistd.h>
 
 #include "client_connection.h"
 #include "http_request.h"
@@ -58,8 +59,12 @@ connection_status_t ClientConnection::connection_processing() {
          ** это значит, что в классе воркера мы должны в отслеживаемые epoll'ом сокеты вместо нашего клиентского
          ** добавить сокет апстрима, и в мапе сокет - ClientConnection подменить ключ с клиентского на апстримовский
          */
-        this->SEND_HEADER_TO_PROXY;
-        return CONNECTION_PROXY;
+        if (connect_to_upstream()) {
+            stage = SEND_HEADER_TO_PROXY;
+            return CONNECTION_PROXY;
+        } else {
+            stage = FAILED_TO_CONNECT;
+        }
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -261,3 +266,39 @@ int ClientConnection::get_upstream_sock() {
 int ClientConnection::get_client_sock() {
     return this->sock;
 }
+
+bool ClientConnection::connect_to_upstream() {
+    if ((proxy_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        return false;
+    }
+    if (!location_->upstreams[0].is_ip_address()) {
+        struct sockaddr_in* serv_addr;
+        struct addrinfo* result = NULL;
+        struct addrinfo hints;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+        if (getaddrinfo(location_->upstreams[0]->get_upstream_address().c_str(), NULL, &hints, &result)) {
+            return false;
+        }
+        serv_addr = (struct sockaddr_in*)result->ai_addr;
+        serv_addr->sin_family = AF_INET;
+        serv_addr->sin_port = htons(80);
+        if (connect(sock, (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
+            return false;
+        }
+    } else {
+        struct sockaddr_in serv_addr;
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(80);
+        if (inet_pton(AF_INET, location_->upstreams[0]->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
+            return false;
+        }
+        if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+            return false;
+        }
+    }
+    return true;
+}
+

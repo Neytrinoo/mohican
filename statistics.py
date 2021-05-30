@@ -22,7 +22,7 @@ def add_label(rects, ax, labels=None, height_factor=1.01):
 
 def main():
     paths = [
-        './mohican.log',
+        './access.log',
     ]
 
     names = []

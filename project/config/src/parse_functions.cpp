@@ -61,7 +61,7 @@ int parse_upstreams(ServerSettings &server, std::string &config, int &pos) {
     pos++;
 
     std::string upstream_address;
-    int weight;
+    int weight, port;
     int pos_before;
     skip_isspace(config, pos);
     while (pos < config.length() && config[pos] != '}') {
@@ -75,7 +75,23 @@ int parse_upstreams(ServerSettings &server, std::string &config, int &pos) {
         upstream_address = config.substr(pos_before, pos - pos_before);
 
         skip_space(config, pos);
-        weight = 1;
+        weight = set_upstream_settings(server, config, pos, "weight");
+        if (weight == -1) {
+            weight = 1;
+        }
+
+        port = set_upstream_settings(server, config, pos, "port");
+        if (port == -1) {
+            port = 80;
+        }
+        if (config[pos] != ';') {
+            return L_ERR;
+        }
+        pos++;
+        skip_isspace(config, pos);
+        server.add_upstream(upstream_address, weight, port);
+
+        /*
         if (config.substr(pos, sizeof("weight") - 1) == "weight") {
             pos += sizeof("weight") - 1;
             skip_space(config, pos);
@@ -100,12 +116,35 @@ int parse_upstreams(ServerSettings &server, std::string &config, int &pos) {
         }
         pos++;
         skip_isspace(config, pos);
-        server.add_upstream(upstream_address, weight);
+        server.add_upstream(upstream_address, weight, port);
     }
-
+         */
+    }
     return (config[pos++] == '}') ? L_END_UPSTREAM : L_ERR;
 }
 
+int set_upstream_settings(ServerSettings &server, std::string &config, int &pos, std::string type_of_setting) {
+    int pos_before;
+    int setting_value = -1;
+    if (config.substr(pos, type_of_setting.length()) == type_of_setting) {
+        pos += type_of_setting.length();
+        skip_space(config, pos);
+        if (config[pos] != '=') {
+            return -1;
+        }
+        pos++;
+        skip_space(config, pos);
+        pos_before = pos;
+        while (isdigit(config[pos])) {
+            pos++;
+        }
+        setting_value = std::stoi(config.substr(pos_before, pos - pos_before));
+
+        skip_space(config, pos);
+    }
+    skip_isspace(config, pos);
+    return setting_value;
+}
 
 int parse_location(ServerSettings &server, std::string &config, int &pos) {
     location_t location;

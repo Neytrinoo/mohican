@@ -66,7 +66,7 @@ public:
 
     void set_property(int number_of_property, std::string value);
 
-    void add_upstream(const std::string &upstream_address, int weight = 1);
+    void add_upstream(const std::string &upstream_address, int weight = 1, int port = 80);
 
     int get_number_of_location_property(std::string property);
 

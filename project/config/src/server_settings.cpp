@@ -99,8 +99,10 @@ void ServerSettings::print_properties() {
 
     for (auto &upstream : this->upstreams) {
         std::cout << "Upstream:" << std::endl;
-        std::cout << "\t" << upstream.first << std::endl;
-        std::cout << "\t" << upstream.second.get_weight() << std::endl;
+        std::cout << "\taddress = " << upstream.first << std::endl;
+        std::cout << "\tweight = " << upstream.second.get_weight() << std::endl;
+        std::cout << "\tport = " << upstream.second.get_port() << std::endl;
+        std::cout << "\tis ip = " << upstream.second.is_ip_address() << std::endl;
     }
 
 }
@@ -219,8 +221,8 @@ location_t *ServerSettings::get_location(std::string &url) {
     throw RootNotFoundException("404");
 }
 
-void ServerSettings::add_upstream(const std::string &upstream_address, int weight) {
-    this->upstreams[upstream_address] = UpstreamSettings(upstream_address, weight);
+void ServerSettings::add_upstream(const std::string &upstream_address, int weight, int port) {
+    this->upstreams[upstream_address] = UpstreamSettings(upstream_address, weight, port);
 }
 
 void ServerSettings::add_exact_match_url(location_t &location) {

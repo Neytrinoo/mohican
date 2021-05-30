@@ -6,8 +6,13 @@ class UpstreamSettings {
 private:
     std::string upstream_address;
     int weight = 1;
+    int port = 80;
+
+    bool is_ip;
+
+    int is_sub_ip_num(std::string sub_ip_num);
 public:
-    explicit UpstreamSettings(std::string upstream_address, int weight = 1);
+    explicit UpstreamSettings(std::string upstream_address, int weight = 1, int port = 80);
 
     UpstreamSettings &operator=(const UpstreamSettings &other) = default;
 
@@ -22,4 +27,8 @@ public:
     std::string get_upstream_address();
 
     int get_weight();
+
+    int get_port();
+
+    bool is_ip_address();
 };

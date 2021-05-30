@@ -82,7 +82,7 @@ private:
     // return true if their connection processing stage is finished
     bool get_request();
     connection_stages_t process_location();
-    bool make_response_header(bool root_found);
+    bool make_response_header();
 
     bool send_http_header_response();
 

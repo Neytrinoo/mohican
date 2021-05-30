@@ -7,14 +7,12 @@
 
 
 int main() {
-    /*
     MohicanServer server;
     if (server.server_start() != 0) {
         return -1;
     }
-     */
-    MainServerSettings server("../settings/mohican.conf");
-    server.get_server().print_properties();
+    /*MainServerSettings server("../settings/mohican.conf");
+    server.get_server().print_properties();*/
 
 
     /*

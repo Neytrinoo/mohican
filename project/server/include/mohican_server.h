@@ -37,6 +37,7 @@ extern std::string path_to_config;
 typedef enum {
     SOFT_LEVEL,
     HARD_LEVEL,
+    NULL_LEVEL
 } action_level_t;
 
 typedef enum {
@@ -56,8 +57,9 @@ public:
 
         static int daemonize(status_server_action server_action);
         bool bind_listen_sock();
-        int add_work_processes(status_server_action server_action);
-        int fill_pid_file(status_server_action server_action);
+        int add_work_processes(status_server_action server_action, action_level_t lvl);
+        int fill_pid_file(status_server_action server_action, action_level_t lvl);
+        int delete_pid_file();
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig);  // handler for soft stop

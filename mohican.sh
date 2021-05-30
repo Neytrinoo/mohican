@@ -20,12 +20,13 @@ start() {
     echo "Server has already started!"
     exit 1
   else
-    touch pid_file.txt
-    rm -rf access.log
-    rm -rf error.log
-    echo "Starting $SERVER_NAME Server..."
+    rm error.log
+    rm access.log
     touch access.log
     touch error.log
+    echo "Starting $SERVER_NAME Server..."
+    rm mohican.out
+    cp ./cmake-build-debug/mohican.out mohican.out
     "$MOHICANS_HOME"/mohican.out
     echo "Server started!"
     exit 0
@@ -41,7 +42,6 @@ stop_soft() {
     get_pid
     kill -1 "$PID_MASTER_PROCESS"
     echo "Server stopped!"
-    rm "$PID_FILE"
     exit 0
 	fi
 }
@@ -55,7 +55,6 @@ stop_hard() {
     get_pid
     kill -2 "$PID_MASTER_PROCESS"
     echo "Server stopped!"
-    rm "$PID_FILE"
     exit 0
   fi
 }
@@ -67,7 +66,7 @@ reload_soft() {
   else
     echo "Reloading soft $SERVER_NAME server..."
     get_pid
-    :> "$PID_FILE"
+    #:> "$PID_FILE"
     kill -13 "$PID_MASTER_PROCESS"
   fi
 }
@@ -79,7 +78,7 @@ reload_hard() {
   else
     echo "Reloading hard $SERVER_NAME server..."
     get_pid
-    :> "$PID_FILE"
+    #:> "$PID_FILE"
     kill -14 "$PID_MASTER_PROCESS"
   fi
 }

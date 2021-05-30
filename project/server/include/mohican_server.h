@@ -55,7 +55,7 @@ public:
         bl::trivial::severity_level cast_types_logs_level(std::string lvl);
         void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 
-        static int daemonize(status_server_action server_action);
+        int daemonize(status_server_action server_action);
         bool bind_listen_sock();
         int add_work_processes(status_server_action server_action, action_level_t lvl);
         int fill_pid_file(status_server_action server_action, action_level_t lvl);
@@ -74,6 +74,10 @@ public:
 
 private:
     int count_workflows;
+    pid_t old_master_process;
+    pid_t new_master_process;
+    pid_t old_master_process_parent;
+    pid_t new_master_process_parent;
 
     std::vector<pid_t> workers_pid;
     std::vector<pid_t> new_workers_pid;

@@ -20,8 +20,12 @@ start() {
     echo "Server has already started!"
     exit 1
   else
-    rm error.log
-    rm access.log
+    if [ -f error.log ]; then
+      rm error.log
+    fi
+    if [ -f access.log ]; then
+      rm access.log
+    fi
     touch access.log
     touch error.log
     echo "Starting $SERVER_NAME Server..."

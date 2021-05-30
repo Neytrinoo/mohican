@@ -126,27 +126,16 @@ int MohicanServer::add_work_processes(status_server_action server_action, action
     int count_work_processes, param;
     if (server_action == START_SERVER) {
         count_work_processes = mohican_settings.get_count_workflows();
+
         if (count_work_processes <= 0) {
             write_to_logs("COUNT WORKFLOWS NEED BE MORE 0", ERROR);
             return -1;
         }
+
         param = count_work_processes;
     }
 
-    if (server_action == RELOAD_SERVER && lvl == HARD_LEVEL) {
-        count_work_processes = mohican_settings.get_count_workflows();
-
-        if (count_work_processes <= 0) {
-            write_to_logs("COUNT WORKFLOWS NEED BE MORE 0", ERROR);
-            return -1;
-        }
-        if (count_work_processes < workers_pid.size()) {
-            write_to_logs("LOGIC ERROR", ERROR);
-            return -1;
-        }
-        param = count_work_processes - (int)workers_pid.size();
-    }
-        //TODO: check on clear vector_pid
+    //TODO: check on clear vector_pid
     for (int i = 0; i < param; ++i) {
        pid_t pid = fork();
         if (pid == -1) {
@@ -369,6 +358,16 @@ int MohicanServer::apply_config(status_server_action server_action, action_level
 
     if (level == HARD_LEVEL) {
         count_workflows = mohican_settings.get_count_workflows();
+        server = mohican_settings.get_server();
+
+        int status;
+        for (auto &i : this->workers_pid) {
+            kill(i, SIGINT);
+        }
+        for (auto &i : this->workers_pid) {
+            waitpid(i, &status, 0);
+        }
+
         write_to_logs("START SERVER...CONFIG APPLYING", WARNING);
     }
 
@@ -377,20 +376,8 @@ int MohicanServer::apply_config(status_server_action server_action, action_level
         return -1;
     }
 
-    if (count_workflows != workers_pid.size()) {
-        if (count_workflows > workers_pid.size()) {  // && worker_pid.size() != 1
-            add_work_processes(server_action, level);
-        } else if (count_workflows < workers_pid.size()) {
-            size_t size = workers_pid.size();
-            int status;
-            for (int i = 0; i < size - count_workflows; ++i) {
-                write_to_logs("KILL TO PROCESS: " + std::to_string(workers_pid[workers_pid.size() - 1]), WARNING);
-                kill(workers_pid[workers_pid.size() - 1], SIGKILL);
-                waitpid(workers_pid[workers_pid.size() - 1], &status, 0);
-                workers_pid.erase(workers_pid.begin() + workers_pid.size() - 1);
-            }
-        }
-    }
+    workers_pid.clear();
+    add_work_processes(START_SERVER, NULL_LEVEL);
 
     if (fill_pid_file(RELOAD_SERVER, HARD_LEVEL) == -1) {
         write_to_logs("ERROR FILL PID FILE", ERROR);

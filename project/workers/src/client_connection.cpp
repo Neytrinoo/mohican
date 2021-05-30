@@ -52,7 +52,14 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (stage == PASS_TO_PROXY) {
-
+        /* TODO: подключаемся к апстриму и передаем ему хедер запроса
+         ** сокет апстрима кладем в переменную this->proxy_sock
+         ** далее меняем состояние на SEND_HEADER_TO_PROXY, и возвращаем из функции состояние CONNECTION_PROXY -
+         ** это значит, что в классе воркера мы должны в отслеживаемые epoll'ом сокеты вместо нашего клиентского
+         ** добавить сокет апстрима, и в мапе сокет - ClientConnection подменить ключ с клиентского на апстримовский
+         */
+        this->SEND_HEADER_TO_PROXY;
+        return CONNECTION_PROXY;
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -245,4 +252,8 @@ void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_
     for (auto& i : vector_logs) {
         i->log(message, lvl);
     }
+}
+
+int ClientConnection::get_upstream_sock() {
+    return this->proxy_sock;
 }

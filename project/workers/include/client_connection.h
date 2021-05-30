@@ -10,9 +10,10 @@
 
 typedef enum {
     CONNECTION_PROCESSING,
+    CONNECTION_PROXY,
     CONNECTION_TIMEOUT_ERROR,
     CONNECTION_FINISHED,
-    ERROR_WHILE_CONNECTION_PROCESSING
+    ERROR_WHILE_CONNECTION_PROCESSING,
 } connection_status_t;
 
 class ClientConnection {
@@ -29,9 +30,12 @@ public:
 
     clock_t get_timeout();
 
+    int get_upstream_sock();
+
     void write_to_logs(std::string message, bl::trivial::severity_level lvl);
 private:
     int sock;
+    int proxy_sock;
     clock_t timeout;
 
     std::vector<MohicanLog*> vector_logs;
@@ -44,6 +48,10 @@ private:
         SEND_FILE,
         BAD_REQUEST,
         PASS_TO_PROXY,
+        SEND_HEADER_TO_PROXY,
+        READ_BODY_FROM_CLIENT,
+        SEND_BODY_TO_PROXY,
+        SENT_PROXY_RESPONSE_TO_CLIENT,
         ERROR_STAGE
     } connection_stages_t;
 

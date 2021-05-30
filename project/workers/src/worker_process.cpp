@@ -60,6 +60,8 @@ void WorkerProcess::run() {
                     this->client_connections.erase(events[i].data.fd);
                     close(events[i].data.fd);
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);
+
+                    // TODO: сюда вставить подмену ключа
                 }
             }
         }
@@ -69,6 +71,15 @@ void WorkerProcess::run() {
         this->message_to_log(INFO_SOFT_STOP_START);
         for (int i = 0; i < epoll_events_count; ++i) {
             connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
+            if (connection_status == CONNECTION_PROXY) {
+                ev.data.fd = this->client_connections[events[i].data.fd].get_upstream_sock();
+                ev.events = EPOLLIN;
+                epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
+
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]); // удаляем из отслеживаемых клиентский сокет
+
+
+            }
             if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR ||
                 connection_status == ERROR_WHILE_CONNECTION_PROCESSING) {
                 this->client_connections.erase(events[i].data.fd);

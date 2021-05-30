@@ -259,7 +259,7 @@ void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_
     }
 }
 
-int ClientConnection::get_upstream_sock() {
+int &ClientConnection::get_upstream_sock() {
     return this->proxy_sock;
 }
 
@@ -268,10 +268,10 @@ int ClientConnection::get_client_sock() {
 }
 
 bool ClientConnection::connect_to_upstream() {
-    if ((proxy_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((get_upstream_sock() = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return false;
     }
-    if (!location_->upstreams[0].is_ip_address()) {
+    if (!location_->upstreams[0]->is_ip_address()) {
         struct sockaddr_in* serv_addr;
         struct addrinfo* result = NULL;
         struct addrinfo hints;
@@ -284,20 +284,22 @@ bool ClientConnection::connect_to_upstream() {
         }
         serv_addr = (struct sockaddr_in*)result->ai_addr;
         serv_addr->sin_family = AF_INET;
-        serv_addr->sin_port = htons(80);
-        if (connect(proxy_sock, (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
+        serv_addr->sin_port = htons(location_->upstreams[0]->get_port());
+        if (connect(get_upstream_sock(), (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }
+        close(proxy_sock);
     } else {
         struct sockaddr_in serv_addr;
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(80);
+        serv_addr.sin_port = htons(location_->upstreams[0]->get_port());
         if (inet_pton(AF_INET, location_->upstreams[0]->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
-        if (connect(proxy_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        if (connect(get_upstream_sock(), (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             return false;
         }
+        close(proxy_sock);
     }
     return true;
 }

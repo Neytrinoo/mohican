@@ -14,6 +14,8 @@ typedef enum {
     CONNECTION_TIMEOUT_ERROR,
     CONNECTION_FINISHED,
     ERROR_WHILE_CONNECTION_PROCESSING,
+    CHECKOUT_CLIENT,
+    CHECKOUT_PROXY,
 } connection_status_t;
 
 class ClientConnection {
@@ -30,7 +32,7 @@ public:
 
     clock_t get_timeout();
 
-    int get_upstream_sock();
+    int &get_upstream_sock();
 
     int get_client_sock();
 

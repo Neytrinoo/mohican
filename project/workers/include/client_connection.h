@@ -105,7 +105,9 @@ private:
 
     void set_method();
 
-    void message_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
+    void message_to_log(log_messages_t log_type, std::string &url, std::string &method);
+
+    void message_to_log(log_messages_t log_type);
 
     bool connect_to_upstream();
 };

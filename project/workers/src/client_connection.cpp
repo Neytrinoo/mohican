@@ -193,7 +193,43 @@ bool ClientConnection::send_file() {
     return false;
 }
 
-void ClientConnection::message_to_log(log_messages_t log_type, std::string url, std::string method) {
+
+void ClientConnection::message_to_log(log_messages_t log_type) {
+    switch (log_type) {
+        case INFO_CONNECTION_FINISHED:
+            this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" +
+                                " [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", INFO);
+            break;
+        case ERROR_404_NOT_FOUND:
+            this->write_to_logs("404 NOT FOUND [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+        case ERROR_TIMEOUT:
+            this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+        case ERROR_READING_REQUEST:
+            this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+        case ERROR_SEND_RESPONSE:
+            this->write_to_logs("Send response error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+        case ERROR_SEND_FILE:
+            this->write_to_logs("Send file error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+        case ERROR_BAD_REQUEST:
+            this->write_to_logs("Bad request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;
+    }
+}
+
+
+void ClientConnection::message_to_log(log_messages_t log_type, std::string &url, std::string &method) {
     switch (log_type) {
         case INFO_NEW_CONNECTION:
             this->write_to_logs("New connection [METHOD " + method + "] [URL "
@@ -201,35 +237,6 @@ void ClientConnection::message_to_log(log_messages_t log_type, std::string url, 
                                         + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                     std::to_string(this->sock)
                                         + "]", INFO);
-            break;
-        case INFO_CONNECTION_FINISHED:
-            this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" +
-                    " [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", INFO);
-            break;
-        case ERROR_404_NOT_FOUND:
-            this->write_to_logs("404 NOT FOUND [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_TIMEOUT:
-            this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_READING_REQUEST:
-            this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_SEND_RESPONSE:
-            this->write_to_logs("Send response error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_SEND_FILE:
-            this->write_to_logs("Send file error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_BAD_REQUEST:
-            this->write_to_logs("Bad request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                        + std::to_string(this->sock) + "]", ERROR);
             break;
     }
 }

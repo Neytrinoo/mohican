@@ -285,7 +285,7 @@ bool ClientConnection::connect_to_upstream() {
         serv_addr = (struct sockaddr_in*)result->ai_addr;
         serv_addr->sin_family = AF_INET;
         serv_addr->sin_port = htons(80);
-        if (connect(sock, (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
+        if (connect(proxy_sock, (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }
     } else {
@@ -295,7 +295,7 @@ bool ClientConnection::connect_to_upstream() {
         if (inet_pton(AF_INET, location_->upstreams[0]->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
-        if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        if (connect(proxy_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             return false;
         }
     }

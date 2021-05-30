@@ -11,12 +11,16 @@ export DEFAULT_PATH_TO_CONFIG=.mohican.conf
 
 
 get_pid() {
-  # shellcheck disable=SC2002
   PID_MASTER_PROCESS=$(head -n 1 "$PID_FILE")
 }
 
+get_has_server_started() {
+  HAS_SERVER_STARTED=$(ps aux | grep ./mohican.out | wc -l)
+}
+
 start() {
-  if [ -f "$PID_FILE" ] && [ $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has already started!"
     exit 1
   else
@@ -38,7 +42,8 @@ start() {
 }
 
 stop_soft() {
-  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -51,7 +56,8 @@ stop_soft() {
 }
 
 stop_hard() {
-  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has not started yet!"
     exit 1
   else
@@ -64,32 +70,36 @@ stop_hard() {
 }
 
 reload_soft() {
-  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has not started yet!"
     exit 1
   else
     echo "Reloading soft $SERVER_NAME server..."
     get_pid
-    #:> "$PID_FILE"
     kill -13 "$PID_MASTER_PROCESS"
+    echo "Server reloaded!"
+    exit 0
   fi
 }
 
 reload_hard() {
-  if [ ! -f "$PID_FILE" ] || [ ! $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has not started yet!"
     exit 1
   else
     echo "Reloading hard $SERVER_NAME server..."
     get_pid
-    #:> "$PID_FILE"
     kill -14 "$PID_MASTER_PROCESS"
+    echo "Server reloaded!"
+    exit 0
   fi
 }
 
 status() {
-# shellcheck disable=SC2046
-  if [ -f "$PID_FILE" ] && [ $(head -n 1 "$PID_FILE") ]; then
+  get_has_server_started
+  if [ "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "$SERVER_NAME is running!"
   else
     echo "$SERVER_NAME is down!"
@@ -100,57 +110,56 @@ create_config() {
   cp "$DEFAULT_PATH_TO_CONFIG" settings/mohican.conf
 }
 
-  #read -n 1 -p "(нажмите любую клавишу для продолжения)"
+case $1 in
+  start)
+    start
+  ;;
+  stop)
+  shift
   case $1 in
-	  start)
-	    start
-	  ;;
-    stop)
-    shift
-    case $1 in
-      soft)
-        stop_soft
-        exit 0
-      ;;
-      hard)
-        stop_hard
-        exit 0
-      ;;
-    esac
-    echo "Usage : <hard|soft>";
+    soft)
+      stop_soft
+      exit 0
     ;;
-    reload)
-    shift
-    case $1 in
-      soft)
-        reload_soft
-        exit 0
-      ;;
-      hard)
-        reload_hard
-        exit 0
-      ;;
-    esac
-    echo "Usage : <hard|soft>";
-    ;;
-  	status)
-	    status
-    ;;
-    create)
-      shift
-      if [ "$1" =  config ]; then
-        create_config
-      else
-        echo "Usage : <config>";
-      fi
-    ;;
-
-    *)
-      if [ -f "$PID_FILE" ]; then
-        echo "Usage : <stop|reload|status>";
-      else
-        echo "Usage : <start|status|create>";
-      fi
+    hard)
+      stop_hard
+      exit 0
     ;;
   esac
+  echo "Usage : <hard|soft>";
+  ;;
+  reload)
+  shift
+  case $1 in
+    soft)
+      reload_soft
+      exit 0
+    ;;
+    hard)
+      reload_hard
+      exit 0
+    ;;
+  esac
+  echo "Usage : <hard|soft>";
+  ;;
+  status)
+    status
+  ;;
+  create)
+    shift
+    if [ "$1" =  config ]; then
+      create_config
+    else
+      echo "Usage : <config>";
+    fi
+  ;;
+
+  *)
+    if [ "$(ps aux | grep ./mohican.out | wc -l)" \> 1 ]; then
+      echo "Usage : <stop|reload|status>";
+    else
+      echo "Usage : <start|status|create>";
+    fi
+  ;;
+esac
 exit 0

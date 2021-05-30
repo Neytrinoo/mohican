@@ -74,6 +74,8 @@ reload_soft() {
     echo "Reloading soft $SERVER_NAME server..."
     get_pid
     kill -13 "$PID_MASTER_PROCESS"
+    echo "Server reloaded!"
+    exit 0
   fi
 }
 
@@ -86,6 +88,8 @@ reload_hard() {
     echo "Reloading hard $SERVER_NAME server..."
     get_pid
     kill -14 "$PID_MASTER_PROCESS"
+    echo "Server reloaded!"
+    exit 0
   fi
 }
 

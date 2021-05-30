@@ -73,11 +73,9 @@ public:
         int apply_config(status_server_action server_action, action_level_t level);
 
 private:
-    int count_workflows;
-    pid_t old_master_process;
-    pid_t new_master_process;
-    pid_t old_master_process_parent;
-    pid_t new_master_process_parent;
+    int count_workflows = 0;
+    pid_t old_master_process = 0;
+    pid_t new_master_process = 0;
 
     std::vector<pid_t> workers_pid;
     std::vector<pid_t> new_workers_pid;
@@ -95,7 +93,7 @@ private:
 
     class ServerSettings server;
 
-    int listen_sock;
+    int listen_sock = 0;
 
     MainServerSettings mohican_settings;
     MainServerSettings new_mohican_settings;

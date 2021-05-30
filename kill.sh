@@ -6,4 +6,3 @@ kill $var
 done
 rm access.log
 rm error.log
-rm pid_file.txt

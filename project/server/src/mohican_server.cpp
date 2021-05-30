@@ -55,14 +55,13 @@ int MohicanServer::daemonize(status_server_action server_action) {
         if (pid == -1) {
             return -1;
         }
-
         if (pid != 0) {  // Возвращается нуль процессу-потомку и пид чилда мастеру
             exit(0);
         }
+
         setsid();
         old_master_process = getpid();
-        old_master_process_parent = getppid();
-        write_to_logs("OLD MASTER PROCESS: " + std::to_string(old_master_process) + " OLD MASTER PARENT: " + std::to_string(old_master_process_parent), ERROR);
+        write_to_logs("OLD MASTER PROCESS: " + std::to_string(old_master_process), ERROR);
         return 0;
     }
 
@@ -72,30 +71,32 @@ int MohicanServer::daemonize(status_server_action server_action) {
         if (pid_child_of_old_master == -1) {
             return -1;
         }
+
         // check it isn't old master
         if (getpid() == old_master_process) {
             return 0;
         }
-        write_to_logs("COUN T LOGS", ERROR);
-        if (getppid() != old_master_process_parent) {
-            write_to_logs("PPID " + std::to_string(getppid()), ERROR);
-            pid_t pid_to_finish = getpid();
-            close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
-            pid_t new_master_pid = fork();
 
-            if (new_master_pid == -1) {
-                return -1;
-            }
-            if (getpid() == pid_to_finish) {
-                exit(0);
-            }
-            write_to_logs("PID IN ENTER", ERROR);
-            new_master_process = getpid();
-            setsid();
-            return (int)new_master_process;
+        write_to_logs("PPID " + std::to_string(getppid()), ERROR);
+        pid_t pid_to_finish = getpid();
+
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        pid_t new_master_pid = fork();
+
+        if (new_master_pid == -1) {
+            return -1;
         }
+        if (getpid() == pid_to_finish) {
+            exit(0);
+        }
+
+        write_to_logs("PID IN ENTER", ERROR);
+        new_master_process = getpid();
+        setsid();
+
+        return (int)new_master_process;
     }
     return 0;
 }
@@ -133,8 +134,19 @@ int MohicanServer::delete_pid_file() {
 
 int MohicanServer::add_work_processes(status_server_action server_action, action_level_t lvl) {
     int count_work_processes, param;
-    if (server_action == START_SERVER) {
+    if (server_action == START_SERVER || (server_action == RELOAD_SERVER && lvl == HARD_LEVEL)) {
         count_work_processes = mohican_settings.get_count_workflows();
+
+        if (count_work_processes <= 0) {
+            write_to_logs("COUNT WORKFLOWS NEED BE MORE 0", ERROR);
+            return -1;
+        }
+
+        param = count_work_processes;
+    }
+    
+    if (server_action == RELOAD_SERVER && lvl == SOFT_LEVEL) {
+        count_work_processes = new_mohican_settings.get_count_workflows();
 
         if (count_work_processes <= 0) {
             write_to_logs("COUNT WORKFLOWS NEED BE MORE 0", ERROR);
@@ -145,7 +157,6 @@ int MohicanServer::add_work_processes(status_server_action server_action, action
     }
 
     // TODO: check on clear vector_pid
-
     for (int i = 0; i < param; ++i) {
        pid_t pid = fork();
         if (pid == -1) {
@@ -194,7 +205,6 @@ int MohicanServer::server_start() {
     process_setup_signals();  // установка нужных обработчиков сигналов
 
     while (true) {
-
         if (process_soft_stop == 1) {
             server_stop(SOFT_LEVEL);
             return 0;
@@ -211,7 +221,6 @@ int MohicanServer::server_start() {
                 server_stop(HARD_LEVEL);
                 return -1;
             }
-            process_soft_reload = 0;
         }
 
         if (process_hard_reload == 1) {
@@ -247,14 +256,19 @@ int MohicanServer::process_setup_signals() {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
+
     act.sa_handler = sigpipe_handler;
     sigaction(SIGPIPE, &act, nullptr);
-    act.sa_handler = MohicanServer::sighup_handler;
+
+    act.sa_handler = sighup_handler;
     sigaction(SIGHUP, &act, nullptr);
+
     act.sa_handler = sigint_handler;
     sigaction(SIGINT, &act, nullptr);
+
     act.sa_handler = sigalrm_handler;
     sigaction(SIGALRM, &act, nullptr);
+    
     return 0;
 }
 
@@ -271,8 +285,9 @@ int MohicanServer::server_stop(action_level_t level) {
             waitpid(i, &status, 0);
         }
 
-        write_to_logs("SERVER STOPPED", INFO);
+        write_to_logs("SERVER STOPPED!", INFO);
         delete_pid_file();
+
         exit(0);
     }
 
@@ -287,9 +302,14 @@ int MohicanServer::server_stop(action_level_t level) {
             waitpid(i, &status, 0);
         }
 
-        close(this->listen_sock);
-        write_to_logs("SERVER STOPPED", INFO);
-        delete_pid_file();
+        if (process_soft_reload == 2) {
+            write_to_logs("OLD MASTER SERVER STOPPED!", INFO);
+        } else {
+            close(this->listen_sock);
+            delete_pid_file();
+            write_to_logs("SERVER STOPPED!", INFO);
+        }
+
         exit(0);
     }
 
@@ -302,8 +322,7 @@ int MohicanServer::server_reload(action_level_t level) {
     if (level == HARD_LEVEL) {
         write_to_logs("HARD SERVER RELOADING...", WARNING);
 
-        MainServerSettings mohican_new_settings(CONFIG_FILE_PATH);
-        mohican_settings = mohican_new_settings;
+        mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
 
         if (apply_config(RELOAD_SERVER, HARD_LEVEL) == -1) {
             write_to_logs("ERROR APPLY CONFIG", ERROR);
@@ -325,34 +344,44 @@ int MohicanServer::server_reload(action_level_t level) {
             write_to_logs("ERROR DAEMONIZE", ERROR);
             return -1;
         }
+        if (getpid() == old_master_process) {
+            process_soft_reload = 2;
+            return 0;
+        }
 
         // need to us new master process
         // status daemonize return pid new master process
 
-        if (getpid() == new_master_process) {
-            write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID" + std::to_string(getpid()), WARNING);
+        
+        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " +
+            std::to_string(getpid()) + " and new master process " + std::to_string(new_master_process), WARNING);
 
-            if (apply_config(RELOAD_SERVER, SOFT_LEVEL) == -1) {
-                write_to_logs("ERROR APPLY CONFIG", ERROR);
-                return -1;
-            }
-
-            int status;
-            kill(old_master_process, SIGPIPE);
-            waitpid(old_master_process, &status, 0);
-
-            write_to_logs("OLD MASTER FINISHED ALL CONNECTIONS WITH STATUS: " + std::to_string(WEXITSTATUS(status)) + " PID " + std::to_string(getpid()), INFO);
-            write_to_logs("OLD MASTER PROCESS WITH PID " + std::to_string(old_master_process) + " SUCCESSFULLY FINISHED PID" + std::to_string(getpid()), INFO);
-
-            fill_pid_file(RELOAD_SERVER, SOFT_LEVEL);
-
-            mohican_settings = new_mohican_settings;
-            old_master_process = new_master_process;
-            workers_pid = new_workers_pid;
-
-            write_to_logs("SERVER RELOADED! " + std::to_string(getpid()), INFO);
-            return 0;
+        if (apply_config(RELOAD_SERVER, SOFT_LEVEL) == -1) {
+            write_to_logs("ERROR APPLY CONFIG", ERROR);
+            return -1;
         }
+
+        int status;
+        kill(old_master_process, SIGHUP);
+        waitpid(old_master_process, &status, 0);
+
+        write_to_logs("OLD MASTER FINISHED ALL CONNECTIONS WITH STATUS: " +
+            std::to_string(WEXITSTATUS(status)) + " PID " + std::to_string(getpid()), INFO);
+
+        fill_pid_file(RELOAD_SERVER, SOFT_LEVEL);
+
+        mohican_settings = new_mohican_settings;
+        count_workflows = mohican_settings.get_count_workflows();
+        server = mohican_settings.get_server();
+
+        workers_pid = new_workers_pid;
+
+        old_master_process = new_master_process;
+        new_master_process = 0;
+
+        write_to_logs("SERVER RELOADED!", INFO);
+        process_soft_reload = 0;
+
         return 0;
     }
 
@@ -361,22 +390,39 @@ int MohicanServer::server_reload(action_level_t level) {
 }
 
 int MohicanServer::apply_config(status_server_action server_action, action_level_t level) {
-    if (level == SOFT_LEVEL && getpid() != old_master_process) {
+    if (level == SOFT_LEVEL) {
         write_to_logs("SOFT STOP RELOADING...NEW CONFIG APPLYING", WARNING);
+
         count_workflows = new_mohican_settings.get_count_workflows();
+        if (count_workflows <= 0) {
+            write_to_logs("COUNT WORK PROCESSES MUST BE MORE 0", ERROR);
+            return -1;
+        }
+
+        server = new_mohican_settings.get_server();
+
         if (add_work_processes(RELOAD_SERVER, SOFT_LEVEL) == -1) {
             write_to_logs("ERROR ADD WORKERS", ERROR);
             return -1;
         }
         if (fill_pid_file(RELOAD_SERVER, SOFT_LEVEL) == -1) {
             write_to_logs("ERROR FILL PID FILE", ERROR);
+            return -1;
         }
-        write_to_logs("Worker processes (" + std::to_string(this->new_workers_pid.size()) + ") successfully started", INFO);
-        return 0;
-    }
 
+        write_to_logs("COUNT WORK PROCESSES WAS SUCCESSFULLY CHECKED", WARNING);
+        write_to_logs("Worker processes (" + std::to_string(this->new_workers_pid.size()) + ") successfully started", INFO);
+    }
+    
     if (level == HARD_LEVEL) {
+        write_to_logs("HARD STOP RELOADING...NEW CONFIG APPLYING", WARNING);
+
         count_workflows = mohican_settings.get_count_workflows();
+        if (count_workflows <= 0) {
+            write_to_logs("COUNT WORK PROCESSES MUST BE MORE 0", ERROR);
+            return -1;
+        }
+
         server = mohican_settings.get_server();
 
         int status;
@@ -387,23 +433,20 @@ int MohicanServer::apply_config(status_server_action server_action, action_level
             waitpid(i, &status, 0);
         }
 
-        write_to_logs("START SERVER...CONFIG APPLYING", WARNING);
+        workers_pid.clear();
+
+        if (add_work_processes(RELOAD_SERVER, HARD_LEVEL) == -1) {
+            write_to_logs("ERROR ADD WORKERS", ERROR);
+            return -1;
+        }
+        if (fill_pid_file(RELOAD_SERVER, HARD_LEVEL) == -1) {
+            write_to_logs("ERROR FILL PID FILE", ERROR);
+            return -1;
+        }
+
+        write_to_logs("COUNT WORK PROCESSES WAS SUCCESSFULLY CHECKED", WARNING);
+        write_to_logs("Worker processes (" + std::to_string(this->workers_pid.size()) + ") successfully started", INFO);
     }
-
-    if (count_workflows <= 0) {
-        write_to_logs("COUNT WORK PROCESSES MUST BE MORE 0", ERROR);
-        return -1;
-    }
-
-    workers_pid.clear();
-    add_work_processes(START_SERVER, NULL_LEVEL);
-
-    if (fill_pid_file(RELOAD_SERVER, HARD_LEVEL) == -1) {
-        write_to_logs("ERROR FILL PID FILE", ERROR);
-    }
-
-    write_to_logs("COUNT WORK PROCESSES WAS SUCCESSFULLY CHECKED", WARNING);
-    write_to_logs("Worker processes (" + std::to_string(this->workers_pid.size()) + ") successfully started", INFO);
 
     return 0;
 }

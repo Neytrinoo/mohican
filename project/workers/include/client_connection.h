@@ -74,12 +74,16 @@ private:
     typedef enum {
         INFO_NEW_CONNECTION,
         INFO_CONNECTION_FINISHED,
+        INFO_CONNECTION_WITH_UPSTREAM,
+        INFO_SEND_REQUEST_TO_UPSTREAM,
+        INFO_GET_REQUEST_FROM_UPSTREAM,
+        INFO_SEND_UPSTREAM_REQUEST_TO_CLIENT,
         ERROR_404_NOT_FOUND,
         ERROR_TIMEOUT,
         ERROR_READING_REQUEST,
         ERROR_SEND_RESPONSE,
         ERROR_SEND_FILE,
-        ERROR_BAD_REQUEST
+        ERROR_BAD_REQUEST,
     } log_messages_t;
 
     connection_stages_t stage = GET_REQUEST;

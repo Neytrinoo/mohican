@@ -290,6 +290,15 @@ void ClientConnection::message_to_log(log_messages_t log_type, std::string &url,
                                 std::to_string(this->sock)
                                 + "]", INFO);
             break;
+        case INFO_CONNECTION_WITH_UPSTREAM:
+            this->write_to_logs("CONNECT TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() + "] [URL "
+                                + url
+                                + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                                std::to_string(this->sock)
+                                + "]", INFO);
+            break;
+        case INFO_SEND_REQUEST_TO_UPSTREAM:
+            this->write_to_logs("SEND REQUEST TO UPSTREAM")
     }
 }
 

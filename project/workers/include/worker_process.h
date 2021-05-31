@@ -10,6 +10,10 @@
 #include "mohican_log.h"
 #include "define_log.h"
 
+extern bool is_hard_stop;
+extern bool is_soft_stop;
+extern bool is_soft_reload;
+
 class WorkerProcess {
 public:
     explicit WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);

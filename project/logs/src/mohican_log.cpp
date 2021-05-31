@@ -4,7 +4,7 @@ MohicanLog::MohicanLog(std::string file, bool flush_flag, bl::trivial::severity_
     bl::register_simple_formatter_factory<bl::trivial::severity_level, char>("Severity");
 
     auto backend = boost::make_shared<backend_type>(
-            kw::file_name = file + ".log",
+            kw::file_name = file,
             kw::open_mode = std::ios::app,
             kw::auto_flush = flush_flag);
 

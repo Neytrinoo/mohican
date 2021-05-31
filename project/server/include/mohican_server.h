@@ -84,9 +84,8 @@ private:
 
     std::string access_log_level = "debug";
     std::string error_log_level = "error";
-    std::string access_lvl_before_reload, error_lvl_before_reload;
-    MohicanLog error_log = MohicanLog ("error", true, cast_types_logs_level(error_log_level));
-    MohicanLog access_log = MohicanLog ("access", true, cast_types_logs_level(access_log_level));
+    MohicanLog error_log;
+    MohicanLog access_log;
 
     std::vector<MohicanLog*> vector_logs;
     std::vector<MohicanLog*> new_vector_logs;  // TODO: check why not used, error

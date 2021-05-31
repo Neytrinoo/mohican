@@ -20,6 +20,8 @@ MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
     this->count_workflows = this->mohican_settings.get_count_workflows();
     this->server = this->mohican_settings.get_server();
+    error_log = MohicanLog(this->server.get_error_log_filename(), true, cast_types_logs_level(error_log_level));
+    access_log = MohicanLog(this->server.get_access_log_filename(), true, cast_types_logs_level(access_log_level));
     vector_logs.push_back(&error_log);
     vector_logs.push_back(&access_log);
     write_to_logs("SERVER STARTING...", INFO);
@@ -349,9 +351,8 @@ int MohicanServer::server_reload(action_level_t level) {
         // need to us new master process
         // status daemonize return pid new master process
 
-
-        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " +
-                      std::to_string(getpid()), WARNING);
+        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " + std::to_string(getpid()),
+                      WARNING);
 
         if (apply_config(RELOAD_SERVER, SOFT_LEVEL) == -1) {
             write_to_logs("ERROR APPLY CONFIG", ERROR);

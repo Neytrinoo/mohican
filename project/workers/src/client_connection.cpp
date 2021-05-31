@@ -294,7 +294,6 @@ bool ClientConnection::connect_to_upstream() {
         if (connect(get_upstream_sock(), (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }
-        close(proxy_sock);
     } else {
         struct sockaddr_in serv_addr;
         serv_addr.sin_family = AF_INET;
@@ -305,7 +304,6 @@ bool ClientConnection::connect_to_upstream() {
         if (connect(get_upstream_sock(), (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             return false;
         }
-        close(proxy_sock);
     }
     return true;
 }

@@ -61,10 +61,27 @@ connection_status_t ClientConnection::connection_processing() {
          */
         if (connect_to_upstream()) {
             stage = SEND_HEADER_TO_PROXY;
+            request_str_ = request_.get_string();
             return CONNECTION_PROXY;
         } else {
             stage = FAILED_TO_CONNECT;
         }
+    }
+
+    if (stage == SEND_HEADER_TO_PROXY) {
+        if (send_header(request_str_, proxy_sock, request_pos)) {
+            stage = SEND_BODY_TO_PROXY;
+        } else if (clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT) {
+            stage = PROXY_TIMEOUT;
+        }
+    }
+
+    if (stage == SEND_BODY_TO_PROXY) {
+        stage = GET_RESPONSE_FROM_PROXY;
+    }
+
+    if (stage == GET_RESPONSE_FROM_PROXY) {
+
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -276,7 +293,7 @@ bool ClientConnection::connect_to_upstream() {
     if ((get_upstream_sock() = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return false;
     }
-    UpstreamSettings *upstream = location_->upstreams[0];
+    UpstreamSettings* upstream = location_->upstreams[0];
     if (!location_->upstreams[0]->is_ip_address()) {
         struct sockaddr_in* serv_addr;
         struct addrinfo* result = NULL;

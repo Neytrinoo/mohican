@@ -57,6 +57,8 @@ private:
         SEND_BODY_TO_PROXY,
         SENT_PROXY_RESPONSE_TO_CLIENT,
         FAILED_TO_CONNECT,
+        PROXY_TIMEOUT,
+        GET_RESPONSE_FROM_PROXY,
         ERROR_STAGE
     } connection_stages_t;
 
@@ -90,6 +92,7 @@ private:
     std::string response_str_;
     std::string request_str_;
 
+    int request_pos = 0;
     int response_pos = 0;
     int file_fd;
 

@@ -4,20 +4,24 @@
 #include <ctime>
 
 #include "http_request.h"
+#include "http_response.h"
 #include "server_settings.h"
 #include "mohican_log.h"
 #include "define_log.h"
 
 typedef enum {
     CONNECTION_PROCESSING,
+    CONNECTION_PROXY,
     CONNECTION_TIMEOUT_ERROR,
     CONNECTION_FINISHED,
-    ERROR_WHILE_CONNECTION_PROCESSING
+    ERROR_WHILE_CONNECTION_PROCESSING,
+    CHECKOUT_CLIENT,
+    CHECKOUT_PROXY,
 } connection_status_t;
 
 class ClientConnection {
 public:
-    ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
+    ClientConnection(class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
 
     ClientConnection &operator=(const ClientConnection &other) = default;
 
@@ -29,9 +33,16 @@ public:
 
     clock_t get_timeout();
 
+    int &get_upstream_sock();
+
+    int get_client_sock();
+
     void write_to_logs(std::string message, bl::trivial::severity_level lvl);
+
+    void set_socket(int socket);
 private:
     int sock;
+    int proxy_sock;
     clock_t timeout;
 
     std::vector<MohicanLog*> vector_logs;
@@ -44,6 +55,15 @@ private:
         SEND_FILE,
         BAD_REQUEST,
         PASS_TO_PROXY,
+        SEND_HEADER_TO_PROXY,
+        GET_BODY_FROM_CLIENT,
+        GET_BODY_FROM_PROXY,
+        SEND_BODY_TO_PROXY,
+        SEND_PROXY_RESPONSE_TO_CLIENT,
+        GET_BODY_OR_NOT_FROM_CLIENT,
+        FAILED_TO_CONNECT,
+        PROXY_TIMEOUT,
+        GET_RESPONSE_FROM_PROXY,
         ERROR_STAGE
     } connection_stages_t;
 
@@ -56,12 +76,16 @@ private:
     typedef enum {
         INFO_NEW_CONNECTION,
         INFO_CONNECTION_FINISHED,
+        INFO_CONNECTION_WITH_UPSTREAM,
+        INFO_SEND_REQUEST_TO_UPSTREAM,
+        INFO_GET_RESPONSE_FROM_UPSTREAM,
+        INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT,
         ERROR_404_NOT_FOUND,
         ERROR_TIMEOUT,
         ERROR_READING_REQUEST,
         ERROR_SEND_RESPONSE,
         ERROR_SEND_FILE,
-        ERROR_BAD_REQUEST
+        ERROR_BAD_REQUEST,
     } log_messages_t;
 
     connection_stages_t stage = GET_REQUEST;
@@ -73,24 +97,41 @@ private:
     char last_char_;
     std::string line_;
     HttpRequest request_;
-    location_t location_;
-    std::string response;
+    location_t *location_ = nullptr;
+    std::string response_str_;
+    std::string request_str_;
 
+    std::string upstream_buffer; // буфер для отправки запросов и ответов между клиентом и апстримом
+    int buffer_read_count = 0; // количество считанных данных с клиента или с апстрима всего
+    int get_body_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
+    size_t body_length; // длина тела пользовательского запроса
+    int send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
+
+    HttpResponse response_;
+
+    int request_pos = 0;
     int response_pos = 0;
     int file_fd;
 
     // return true if their connection processing stage is finished
     bool get_request();
     connection_stages_t process_location();
-    bool make_response_header(bool root_found);
+    bool make_response_header();
 
-    bool send_http_header_response();
+    bool send_header(std::string& str, int socket, int& pos);
 
     bool send_file();
 
-    bool is_end_request();  // check if the line_ has ended
+    bool get_body(int socket);
 
-    void set_method();
+    void message_to_log(log_messages_t log_type, std::string &url, std::string &method);
 
-    void message_to_log(log_messages_t log_type, std::string url = "", std::string method = "");
+    void message_to_log(log_messages_t log_type);
+
+    bool connect_to_upstream();
+
+    bool is_timeout();
+
+    bool send_body(int socket);
+    bool get_proxy_header();
 };

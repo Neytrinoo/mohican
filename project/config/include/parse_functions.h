@@ -52,3 +52,5 @@ void parse_config(MainServerSettings &main_server);
 int get_lexem(std::string &config, int &pos, const std::vector<std::string> &valid_properties);
 location_type_t get_prefix_status(std::string& config, int &pos);
 bool get_url(std::string &config, int &pos, location_t &location);
+int set_upstream_settings(ServerSettings &server, std::string &config, int &pos, std::string type_of_setting);
+int parse_upstreams(ServerSettings &server, std::string &config, int &pos);

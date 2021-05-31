@@ -78,6 +78,10 @@ HttpRequest::HttpRequest(const std::string& str) {
 }
 
 void HttpRequest::add_line(const std::string& line) {
+    if (line.length() == 2 && line[0] == '\r') {
+        request_ended_ = true;
+        return;
+    }
     if (!first_line_added_) {
         add_first_line(line);
         return;
@@ -156,4 +160,15 @@ bool HttpRequest::first_line_added() const {
 
 bool HttpRequest::requst_ended() const {
     return request_ended_;
+}
+
+std::string HttpRequest::get_string() {
+    std::string str;
+    str += method_ + " " + url_ + " HTTP/" + std::to_string(version_major_) + "." + std::to_string(version_minor_)
+            + "\r\n";
+    for (const auto  &header: headers_) {
+        str += header.first + ": " + header.second + "\r\n";
+    }
+    str += "\r\n";
+    return str;
 }

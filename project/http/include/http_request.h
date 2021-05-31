@@ -22,6 +22,8 @@ class HttpRequest : public HttpBase {
     bool first_line_added() const;
     bool requst_ended() const;
 
+    std::string get_string();
+
  private:
     void add_first_line(const std::string &line);
     void add_header(const std::string &line);

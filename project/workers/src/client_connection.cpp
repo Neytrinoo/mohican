@@ -138,7 +138,7 @@ bool ClientConnection::send_header(std::string& str, int socket, int& pos) {
     int write_result;
     while ((write_result = write(socket, str.c_str() + pos, 1)) == 1) {
         pos++;
-        if (response_pos == str.size() - 1) {
+        if (pos == str.size() - 1) {
             str.clear();
             write_result = write(socket, "\r\n", 2);
             if (write_result == -1) {
@@ -171,7 +171,7 @@ bool ClientConnection::send_file() {
     int write_result;
 
     read_code = read(this->file_fd, &c, sizeof(c));
-    while ((write_result = write(this->sock, &c, sizeof(c)) == sizeof(c)) && read_code > 0) {
+    while (read_code > 0 && (write_result = write(this->sock, &c, sizeof(c)) == sizeof(c))) {
         read_code = read(this->file_fd, &c, sizeof(c));
         is_write_data = true;
     }
@@ -276,6 +276,7 @@ bool ClientConnection::connect_to_upstream() {
     if ((get_upstream_sock() = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return false;
     }
+    UpstreamSettings *upstream = location_->upstreams[0];
     if (!location_->upstreams[0]->is_ip_address()) {
         struct sockaddr_in* serv_addr;
         struct addrinfo* result = NULL;
@@ -284,12 +285,12 @@ bool ClientConnection::connect_to_upstream() {
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = IPPROTO_TCP;
-        if (getaddrinfo(location_->upstreams[0]->get_upstream_address().c_str(), NULL, &hints, &result)) {
+        if (getaddrinfo(upstream->get_upstream_address().c_str(), NULL, &hints, &result)) {
             return false;
         }
         serv_addr = (struct sockaddr_in*)result->ai_addr;
         serv_addr->sin_family = AF_INET;
-        serv_addr->sin_port = htons(location_->upstreams[0]->get_port());
+        serv_addr->sin_port = htons(upstream->get_port());
         if (connect(get_upstream_sock(), (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }

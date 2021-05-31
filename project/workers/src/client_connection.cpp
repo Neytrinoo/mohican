@@ -63,6 +63,7 @@ connection_status_t ClientConnection::connection_processing() {
         if (connect_to_upstream()) {
             stage = SEND_HEADER_TO_PROXY;
             request_str_ = request_.get_string();
+            this->message_to_log(INFO_CONNECTION_WITH_UPSTREAM, this->request_.get_url(), this->request_.get_method());
             return CHECKOUT_PROXY;
         } else {
             stage = FAILED_TO_CONNECT;
@@ -81,6 +82,7 @@ connection_status_t ClientConnection::connection_processing() {
         this->upstream_buffer.reserve(BUFFER_LENGTH);
         if (this->request_.get_method() == "GET") {
             this->stage = GET_RESPONSE_FROM_PROXY;
+            this->message_to_log(INFO_SEND_REQUEST_TO_UPSTREAM, this->request_.get_url(), this->request_.get_method());
         } else {
             this->stage = GET_BODY_FROM_CLIENT;
             this->body_length = std::stoul(this->request_.get_headers()[CONTENT_LENGTH_HDR]);
@@ -93,6 +95,7 @@ connection_status_t ClientConnection::connection_processing() {
             this->get_body_ind = 0;
             if (this->buffer_read_count >= this->body_length) {
                 this->stage = GET_RESPONSE_FROM_PROXY;
+                this->message_to_log(INFO_SEND_REQUEST_TO_UPSTREAM, this->request_.get_url(), this->request_.get_method());
             } else {
                 this->stage = GET_BODY_FROM_CLIENT;
                 return CHECKOUT_CLIENT;
@@ -124,11 +127,13 @@ connection_status_t ClientConnection::connection_processing() {
 
     if (stage == GET_BODY_FROM_PROXY) {
         stage = SEND_PROXY_RESPONSE_TO_CLIENT;
+        this->message_to_log(INFO_GET_RESPONSE_FROM_UPSTREAM, this->request_.get_url(), this->request_.get_method());
         return CHECKOUT_CLIENT;
     }
 
     if (stage == SEND_PROXY_RESPONSE_TO_CLIENT) {
         if (send_header(response_str_, sock, response_pos)) {
+            this->message_to_log(INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT, this->request_.get_url(), this->request_.get_method());
             return CONNECTION_FINISHED;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
@@ -308,14 +313,32 @@ void ClientConnection::message_to_log(log_messages_t log_type, std::string &url,
                                 + "]", INFO);
             break;
         case INFO_CONNECTION_WITH_UPSTREAM:
-            this->write_to_logs("CONNECT TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() + "] [URL "
-                                + url
-                                + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
-                                std::to_string(this->sock)
-                                + "]", INFO);
+            this->write_to_logs(
+                    "CONNECT TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() + "] [URL "
+                    + url
+                    + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                    std::to_string(this->sock)
+                    + "]", INFO);
             break;
         case INFO_SEND_REQUEST_TO_UPSTREAM:
-            this->write_to_logs("SEND REQUEST TO UPSTREAM")
+            this->write_to_logs(
+                    "SEND REQUEST TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() +
+                    "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                    std::to_string(this->sock) + "]", INFO);
+            break;
+        case INFO_GET_RESPONSE_FROM_UPSTREAM:
+            this->write_to_logs(
+                    "GET RESPONSE FROM UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() +
+                    "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                    std::to_string(this->sock) + "]", INFO);
+            break;
+        case INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT:
+            this->write_to_logs(
+                    "SEND UPSTREAM RESPONSE TO CLIENT [UPSTREAM " +
+                    this->location_->upstreams[0]->get_upstream_address() +
+                    "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                    std::to_string(this->sock) + "]", INFO);
+            break;
     }
 }
 

@@ -21,7 +21,8 @@ extern bool is_hard_stop = false;
 extern bool is_soft_stop = false;
 extern bool is_soft_reload = false;
 
-WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs) :
+WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings,
+                             std::vector<MohicanLog *> &vector_logs) :
         listen_sock(listen_sock), server_settings(server_settings), vector_logs(vector_logs) {
     signal(SIGPIPE, SIG_IGN);
     this->setup_sighandlers();
@@ -47,10 +48,16 @@ void WorkerProcess::run() {
             }
 
             if (events[i].data.fd == this->listen_sock) {
+                ClientConnection *client_connection = new(std::nothrow) ClientConnection(this->server_settings,
+                                                                                         vector_logs);
+                if (!client_connection) {
+                    continue;
+                }
+
                 client = accept(this->listen_sock, NULL, NULL);
                 fcntl(client, F_SETFL, fcntl(client, F_GETFL, 0) | O_NONBLOCK);
-                ev.events = EPOLLIN;
-                ClientConnection *client_connection = new ClientConnection(client, this->server_settings, vector_logs);
+                client_connection->set_socket(client);
+                ev.events = EPOLLIN | EPOLLET;
                 ev.data.ptr = (ClientConnection *) client_connection;
 
                 epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &ev);
@@ -66,14 +73,16 @@ void WorkerProcess::run() {
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_client_sock(), &events[i]);
 
                     ev.data.ptr = (ClientConnection *) client_connection;
-                    ev.events = EPOLLIN;
+                    ev.events = EPOLLOUT;
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_upstream_sock(), &ev);
+                    this->write_to_logs("checkout to proxy", INFO);
                 } else if (connection_status = CHECKOUT_CLIENT) {
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_upstream_sock(), &events[i]);
 
                     ev.data.ptr = (ClientConnection *) client_connection;
                     ev.events = EPOLLIN;
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_client_sock(), &ev);
+                    this->write_to_logs("checkout to client", INFO);
                 }
             }
         }
@@ -107,7 +116,7 @@ void WorkerProcess::sigint_handler(int sig) {
     is_hard_stop = true;
 }
 
-void WorkerProcess::sigpoll_handler(int sig){
+void WorkerProcess::sigpoll_handler(int sig) {
     is_soft_reload = true;
 }
 
@@ -137,7 +146,7 @@ void WorkerProcess::message_to_log(log_messages_t log_type) {
     }
 }
 
-bool WorkerProcess::is_banned_upstream(const std::string& ip, int result_code) {
+bool WorkerProcess::is_banned_upstream(const std::string &ip, int result_code) {
     auto iter = std::find(banned_upstreams.begin(), banned_upstreams.end(), ip);
 
     if (result_code % 100 == 4 || result_code % 100 == 5) {

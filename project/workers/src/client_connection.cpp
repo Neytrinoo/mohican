@@ -17,15 +17,19 @@
 #include "http_response.h"
 #include "http_handle.h"
 
-#define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
+#define CLIENT_SEC_TIMEOUT 1 // maximum request idle time
 #define PAGE_404 "public/404.html"
 #define LENGTH_LINE_FOR_RESERVE 256
 #define BUFFER_LENGTH 1024
 
-ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings,
-                                   std::vector<MohicanLog *> &vector_logs) :
-        sock(sock), server_settings(server_settings), vector_logs(vector_logs) {
+ClientConnection::ClientConnection(class ServerSettings *server_settings,
+                                   std::vector<MohicanLog *> &vector_logs) : server_settings(server_settings),
+                                                                             vector_logs(vector_logs) {
 
+}
+
+void ClientConnection::set_socket(int socket) {
+    this->sock = socket;
 }
 
 connection_status_t ClientConnection::connection_processing() {
@@ -38,7 +42,7 @@ connection_status_t ClientConnection::connection_processing() {
         try {
             is_succeeded = get_request();
         } catch (std::exception &e) {
-            stage = BAD_REQUEST;
+            this->stage = BAD_REQUEST;
         }
         if (is_succeeded) {
             this->stage = this->process_location();
@@ -95,13 +99,14 @@ connection_status_t ClientConnection::connection_processing() {
             this->get_body_ind = 0;
             if (this->buffer_read_count >= this->body_length) {
                 this->stage = GET_RESPONSE_FROM_PROXY;
-                this->message_to_log(INFO_SEND_REQUEST_TO_UPSTREAM, this->request_.get_url(), this->request_.get_method());
+                this->message_to_log(INFO_SEND_REQUEST_TO_UPSTREAM, this->request_.get_url(),
+                                     this->request_.get_method());
             } else {
                 this->stage = GET_BODY_FROM_CLIENT;
                 return CHECKOUT_CLIENT;
             }
         } else if (this->is_timeout()) { // TODO: добавление апстрима в бан лист
-            return CONNECTION_TIMEOUT_ERROR;
+            stage = PROXY_TIMEOUT;
         }
     }
 
@@ -121,7 +126,7 @@ connection_status_t ClientConnection::connection_processing() {
             stage = GET_BODY_FROM_PROXY;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
-            return CONNECTION_TIMEOUT_ERROR;
+            stage = PROXY_TIMEOUT;
         }
     }
 
@@ -133,7 +138,8 @@ connection_status_t ClientConnection::connection_processing() {
 
     if (stage == SEND_PROXY_RESPONSE_TO_CLIENT) {
         if (send_header(response_str_, sock, response_pos)) {
-            this->message_to_log(INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT, this->request_.get_url(), this->request_.get_method());
+            this->message_to_log(INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT, this->request_.get_url(),
+                                 this->request_.get_method());
             return CONNECTION_FINISHED;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
@@ -198,7 +204,11 @@ bool ClientConnection::make_response_header() {
         response_ = http_handler(request_, location_->root);
         this->response_str_ = response_.get_string();
         this->file_fd = open((location_->root + request_.get_url()).c_str(), O_RDONLY);
-    } else {
+        if (this->file_fd == -1) {
+            this->stage = ROOT_NOT_FOUND;
+        }
+    }
+    if (this->stage == ROOT_NOT_FOUND) {
         this->file_fd = open(PAGE_404, O_RDONLY);
         this->response_ = http_handler(request_);
         this->response_str_ = response_.get_string();
@@ -226,7 +236,6 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
         }
         is_write_data = true;
     }
-
     if (write_result == -1) {
         this->stage = ERROR_STAGE;
         this->message_to_log(ERROR_SEND_RESPONSE);

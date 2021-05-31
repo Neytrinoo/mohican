@@ -21,7 +21,7 @@ typedef enum {
 
 class ClientConnection {
 public:
-    ClientConnection(int sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
+    ClientConnection(class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs);
 
     ClientConnection &operator=(const ClientConnection &other) = default;
 
@@ -38,6 +38,8 @@ public:
     int get_client_sock();
 
     void write_to_logs(std::string message, bl::trivial::severity_level lvl);
+
+    void set_socket(int socket);
 private:
     int sock;
     int proxy_sock;

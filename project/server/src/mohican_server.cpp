@@ -61,7 +61,6 @@ int MohicanServer::daemonize(status_server_action server_action) {
 
         setsid();
         old_master_process = getpid();
-        write_to_logs("OLD MASTER PROCESS: " + std::to_string(old_master_process), ERROR);
         return 0;
     }
 
@@ -77,12 +76,11 @@ int MohicanServer::daemonize(status_server_action server_action) {
             return 0;
         }
 
-        write_to_logs("PPID " + std::to_string(getppid()), ERROR);
         pid_t pid_to_finish = getpid();
 
-        close(STDIN_FILENO);
+        /*close(STDIN_FILENO);
         close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        close(STDERR_FILENO);*/
         pid_t new_master_pid = fork();
 
         if (new_master_pid == -1) {
@@ -91,8 +89,7 @@ int MohicanServer::daemonize(status_server_action server_action) {
         if (getpid() == pid_to_finish) {
             exit(0);
         }
-
-        write_to_logs("PID IN ENTER", ERROR);
+        
         new_master_process = getpid();
         setsid();
 

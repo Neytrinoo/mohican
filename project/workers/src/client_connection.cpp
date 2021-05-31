@@ -83,15 +83,15 @@ connection_status_t ClientConnection::connection_processing() {
             this->stage = GET_RESPONSE_FROM_PROXY;
         } else {
             this->stage = GET_BODY_FROM_CLIENT;
-            this->client_body_length = std::stoul(this->request_.get_headers()[CONTENT_LENGTH_HDR]);
+            this->body_length = std::stoul(this->request_.get_headers()[CONTENT_LENGTH_HDR]);
             return CHECKOUT_CLIENT;
         }
     }
 
     if (stage == SEND_BODY_TO_PROXY) {
-        if (this->send_body_to_proxy()) {
-            this->upstream_buffer_ind = 0;
-            if (this->upstream_buffer_read_count >= this->client_body_length) {
+        if (this->send_body(this->proxy_sock)) {
+            this->get_body_ind = 0;
+            if (this->buffer_read_count >= this->body_length) {
                 this->stage = GET_RESPONSE_FROM_PROXY;
             } else {
                 this->stage = GET_BODY_FROM_CLIENT;
@@ -103,8 +103,8 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (this->stage == GET_BODY_FROM_CLIENT) {
-        this->upstream_send_body_ind = 0;
-        if (this->get_body_from_client()) {
+        this->send_body_ind = 0;
+        if (this->get_body(this->sock)) {
             this->stage = SEND_BODY_TO_PROXY;
             return CHECKOUT_PROXY;
         } else if (this->is_timeout()) {
@@ -113,7 +113,12 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (stage == GET_RESPONSE_FROM_PROXY) {
-
+        if (get_proxy_header()) {
+            stage = GET_BODY_FROM_PROXY;
+        } else if (this->is_timeout()) {
+            this->message_to_log(ERROR_TIMEOUT);
+            return CONNECTION_TIMEOUT_ERROR;
+        }
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -167,7 +172,6 @@ bool ClientConnection::get_request() {
 
     return false;
 }
-
 
 bool ClientConnection::make_response_header() {
     if (stage == ROOT_FOUND) {
@@ -358,14 +362,43 @@ bool ClientConnection::connect_to_upstream() {
     return true;
 }
 
+bool ClientConnection::get_proxy_header() {
+    bool is_read_data = false;
+    int result_read;
+    while ((result_read = read(proxy_sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+        this->upstream_buffer.push_back(last_char_);
+        if (this->last_char_ == '\n') {
+            this->response_.add_line(line_);
+            this->upstream_buffer.clear();
+            this->upstream_buffer.reserve(BUFFER_LENGTH);
+        }
+        is_read_data = true;
+    }
+
+    if (response_.response_ended()) {
+        return true;
+    }
+
+    if (result_read == -1) {
+        this->stage = ERROR_STAGE;
+        return false;
+    }
+
+    if (is_read_data) {
+        this->timeout = clock() / CLOCKS_PER_SEC;
+    }
+
+    return false;
+}
+
 bool ClientConnection::get_body(int socket) {
     bool is_read_data = false;
     int result_read;
-    while (this->upstream_buffer_ind < BUFFER_LENGTH &&
+    while (this->get_body_ind < BUFFER_LENGTH &&
            (result_read = read(socket, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->upstream_buffer.push_back(this->last_char_);
-        this->upstream_buffer_ind++;
-        this->upstream_buffer_read_count++;
+        this->get_body_ind++;
+        this->buffer_read_count++;
         is_read_data = true;
     }
 
@@ -378,7 +411,7 @@ bool ClientConnection::get_body(int socket) {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
-    if (this->upstream_buffer_ind >= BUFFER_LENGTH || this->upstream_buffer_read_count >= this->client_body_length) {
+    if (this->get_body_ind >= BUFFER_LENGTH || this->buffer_read_count >= this->body_length) {
         return true;
     }
 
@@ -390,13 +423,13 @@ bool ClientConnection::is_timeout() {
     return clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT;
 }
 
-bool ClientConnection::send_body_to_proxy() {
+bool ClientConnection::send_body(int socket) {
     bool is_write_data = false;
     int write_result;
-    while ((write_result = write(this->proxy_sock, this->upstream_buffer.c_str() + this->upstream_send_body_ind, 1)) ==
+    while ((write_result = write(socket, this->upstream_buffer.c_str() + this->send_body_ind, 1)) ==
            1) {
-        this->upstream_send_body_ind++;
-        if (this->upstream_send_body_ind == this->upstream_buffer_ind) {
+        this->send_body_ind++;
+        if (this->send_body_ind == this->get_body_ind) {
             break;
         }
         is_write_data = true;
@@ -412,7 +445,7 @@ bool ClientConnection::send_body_to_proxy() {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
-    if (this->upstream_send_body_ind == this->upstream_buffer_ind) {
+    if (this->send_body_ind == this->get_body_ind) {
         return true;
     }
 

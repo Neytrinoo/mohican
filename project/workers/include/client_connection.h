@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "http_request.h"
+#include "http_response.h"
 #include "server_settings.h"
 #include "mohican_log.h"
 #include "define_log.h"
@@ -54,6 +55,7 @@ private:
         PASS_TO_PROXY,
         SEND_HEADER_TO_PROXY,
         GET_BODY_FROM_CLIENT,
+        GET_BODY_FROM_PROXY,
         SEND_BODY_TO_PROXY,
         SEND_PROXY_RESPONSE_TO_CLIENT,
         GET_BODY_OR_NOT_FROM_CLIENT,
@@ -95,9 +97,11 @@ private:
 
     std::string upstream_buffer; // буфер для отправки запросов и ответов между клиентом и апстримом
     int buffer_read_count = 0; // количество считанных данных с клиента или с апстрима всего
-    int buffer_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
+    int get_body_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
     size_t body_length; // длина тела пользовательского запроса
     int send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
+
+    HttpResponse response_;
 
     int request_pos = 0;
     int response_pos = 0;
@@ -112,7 +116,7 @@ private:
 
     bool send_file();
 
-    bool get_body();
+    bool get_body(int socket);
 
     void message_to_log(log_messages_t log_type, std::string &url, std::string &method);
 
@@ -122,5 +126,6 @@ private:
 
     bool is_timeout();
 
-    bool send_body_to_proxy();
+    bool send_body(int socket);
+    bool get_proxy_header();
 };

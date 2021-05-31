@@ -87,7 +87,8 @@ private:
     std::string line_;
     HttpRequest request_;
     location_t *location_ = nullptr;
-    std::string response;
+    std::string response_str_;
+    std::string request_str_;
 
     int response_pos = 0;
     int file_fd;
@@ -97,7 +98,7 @@ private:
     connection_stages_t process_location();
     bool make_response_header();
 
-    bool send_http_header_response();
+    bool send_header(std::string& str, int socket, int& pos);
 
     bool send_file();
 

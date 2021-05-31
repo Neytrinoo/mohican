@@ -26,7 +26,7 @@ int HttpResponse::get_status() const {
 }
 void HttpResponse::add_line(const std::string& line) {
     if (line.length() == 2 && line[0] == '\r') {
-        request_ended_ = true;
+        response_ended_ = true;
         return;
     }
     if (!first_line_added_) {
@@ -79,4 +79,8 @@ void HttpResponse::add_header(const std::string& line) {
     std::string header_value(line, start_pos, lf_pos - 1 - start_pos);
     string_to_lower(header_name);
     headers_[header_name] = header_value;
+}
+
+bool HttpResponse::response_ended() const {
+    return response_ended_;
 }

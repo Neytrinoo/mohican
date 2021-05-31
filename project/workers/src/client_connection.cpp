@@ -22,8 +22,8 @@
 #define LENGTH_LINE_FOR_RESERVE 256
 #define BUFFER_LENGTH 1024
 
-ClientConnection::ClientConnection(int sock, class ServerSettings *server_settings,
-                                   std::vector<MohicanLog *> &vector_logs) :
+ClientConnection::ClientConnection(int sock, class ServerSettings* server_settings,
+                                   std::vector<MohicanLog*>& vector_logs) :
         sock(sock), server_settings(server_settings), vector_logs(vector_logs) {
 
 }
@@ -37,7 +37,7 @@ connection_status_t ClientConnection::connection_processing() {
         bool is_succeeded;
         try {
             is_succeeded = get_request();
-        } catch (std::exception &e) {
+        } catch (std::exception& e) {
             stage = BAD_REQUEST;
         }
         if (is_succeeded) {
@@ -113,7 +113,12 @@ connection_status_t ClientConnection::connection_processing() {
     }
 
     if (stage == GET_RESPONSE_FROM_PROXY) {
-
+        if (get_proxy_header()) {
+            stage = GET_BODY_FROM_PROXY;
+        } else if (this->is_timeout()) {
+            this->message_to_log(ERROR_TIMEOUT);
+            return CONNECTION_TIMEOUT_ERROR;
+        }
     }
 
     if (this->stage == SEND_HTTP_HEADER_RESPONSE) {
@@ -168,7 +173,6 @@ bool ClientConnection::get_request() {
     return false;
 }
 
-
 bool ClientConnection::make_response_header() {
     if (stage == ROOT_FOUND) {
         this->response_str_ = http_handler(request_, location_->root).get_string();
@@ -183,7 +187,7 @@ bool ClientConnection::make_response_header() {
     return true;
 }
 
-bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
+bool ClientConnection::send_header(std::string& str, int socket, int& pos) {
     bool is_write_data = false;
     int write_result;
     while ((write_result = write(socket, str.c_str() + pos, 1)) == 1) {
@@ -247,44 +251,44 @@ void ClientConnection::message_to_log(log_messages_t log_type) {
     switch (log_type) {
         case INFO_CONNECTION_FINISHED:
             this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" +
-                                " [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", INFO);
+                    " [CLIENT SOCKET "
+                                        + std::to_string(this->sock) + "]", INFO);
             break;
         case ERROR_404_NOT_FOUND:
             this->write_to_logs("404 NOT FOUND [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_TIMEOUT:
             this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_READING_REQUEST:
             this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_SEND_RESPONSE:
             this->write_to_logs("Send response_str_ error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_SEND_FILE:
             this->write_to_logs("Send file error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_BAD_REQUEST:
             this->write_to_logs("Bad request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+                                        + std::to_string(this->sock) + "]", ERROR);
             break;
     }
 }
 
-void ClientConnection::message_to_log(log_messages_t log_type, std::string &url, std::string &method) {
+void ClientConnection::message_to_log(log_messages_t log_type, std::string& url, std::string& method) {
     switch (log_type) {
         case INFO_NEW_CONNECTION:
             this->write_to_logs("New connection [METHOD " + method + "] [URL "
-                                + url
-                                + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
-                                std::to_string(this->sock)
-                                + "]", INFO);
+                                        + url
+                                        + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                    std::to_string(this->sock)
+                                        + "]", INFO);
             break;
     }
 }
@@ -299,7 +303,7 @@ ClientConnection::connection_stages_t ClientConnection::process_location() {
     HttpResponse http_response;
     try {
         location_ = this->server_settings->get_location(url);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         return ROOT_NOT_FOUND;
     }
     if (location_->is_proxy) {
@@ -309,12 +313,12 @@ ClientConnection::connection_stages_t ClientConnection::process_location() {
 }
 
 void ClientConnection::write_to_logs(std::string message, bl::trivial::severity_level lvl) {
-    for (auto &i : vector_logs) {
+    for (auto& i : vector_logs) {
         i->log(message, lvl);
     }
 }
 
-int &ClientConnection::get_upstream_sock() {
+int& ClientConnection::get_upstream_sock() {
     return this->proxy_sock;
 }
 
@@ -326,10 +330,10 @@ bool ClientConnection::connect_to_upstream() {
     if ((get_upstream_sock() = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return false;
     }
-    UpstreamSettings *upstream = location_->upstreams[0];
+    UpstreamSettings* upstream = location_->upstreams[0];
     if (!location_->upstreams[0]->is_ip_address()) {
-        struct sockaddr_in *serv_addr;
-        struct addrinfo *result = NULL;
+        struct sockaddr_in* serv_addr;
+        struct addrinfo* result = NULL;
         struct addrinfo hints;
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_INET;
@@ -338,10 +342,10 @@ bool ClientConnection::connect_to_upstream() {
         if (getaddrinfo(upstream->get_upstream_address().c_str(), NULL, &hints, &result)) {
             return false;
         }
-        serv_addr = (struct sockaddr_in *) result->ai_addr;
+        serv_addr = (struct sockaddr_in*)result->ai_addr;
         serv_addr->sin_family = AF_INET;
         serv_addr->sin_port = htons(upstream->get_port());
-        if (connect(get_upstream_sock(), (struct sockaddr *) serv_addr, sizeof(*serv_addr)) < 0) {
+        if (connect(get_upstream_sock(), (struct sockaddr*)serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }
     } else {
@@ -351,18 +355,47 @@ bool ClientConnection::connect_to_upstream() {
         if (inet_pton(AF_INET, upstream->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
-        if (connect(get_upstream_sock(), (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        if (connect(get_upstream_sock(), (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             return false;
         }
     }
     return true;
 }
 
+bool ClientConnection::get_proxy_header() {
+    bool is_read_data = false;
+    int result_read;
+    while ((result_read = read(proxy_sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+        this->upstream_buffer.push_back(last_char_);
+        if (this->last_char_ == '\n') {
+            this->response_.add_line(line_);
+            this->upstream_buffer.clear();
+            this->upstream_buffer.reserve(BUFFER_LENGTH);
+        }
+        is_read_data = true;
+    }
+
+    if (response_.response_ended()) {
+        return true;
+    }
+
+    if (result_read == -1) {
+        this->stage = ERROR_STAGE;
+        return false;
+    }
+
+    if (is_read_data) {
+        this->timeout = clock() / CLOCKS_PER_SEC;
+    }
+
+    return false;
+}
+
 bool ClientConnection::get_body_from_client() {
     bool is_read_data = false;
     int result_read;
     while (this->upstream_buffer_ind < BUFFER_LENGTH &&
-           (result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+            (result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->upstream_buffer.push_back(this->last_char_);
         this->upstream_buffer_ind++;
         this->upstream_buffer_read_count++;
@@ -385,7 +418,6 @@ bool ClientConnection::get_body_from_client() {
     return false;
 }
 
-
 bool ClientConnection::is_timeout() {
     return clock() / CLOCKS_PER_SEC - this->timeout > CLIENT_SEC_TIMEOUT;
 }
@@ -394,7 +426,7 @@ bool ClientConnection::send_body_to_proxy() {
     bool is_write_data = false;
     int write_result;
     while ((write_result = write(this->proxy_sock, this->upstream_buffer.c_str() + this->upstream_send_body_ind, 1)) ==
-           1) {
+            1) {
         this->upstream_send_body_ind++;
         if (this->upstream_send_body_ind == this->upstream_buffer_ind) {
             break;

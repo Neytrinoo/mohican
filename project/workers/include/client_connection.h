@@ -4,6 +4,7 @@
 #include <ctime>
 
 #include "http_request.h"
+#include "http_response.h"
 #include "server_settings.h"
 #include "mohican_log.h"
 #include "define_log.h"
@@ -54,6 +55,7 @@ private:
         PASS_TO_PROXY,
         SEND_HEADER_TO_PROXY,
         GET_BODY_FROM_CLIENT,
+        GET_BODY_FROM_PROXY,
         SEND_BODY_TO_PROXY,
         SEND_PROXY_RESPONSE_TO_CLIENT,
         GET_BODY_OR_NOT_FROM_CLIENT,
@@ -98,6 +100,7 @@ private:
     int upstream_buffer_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
     size_t client_body_length; // длина тела пользовательского запроса
     int upstream_send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
+    HttpResponse response_;
 
     int request_pos = 0;
     int response_pos = 0;
@@ -123,4 +126,5 @@ private:
     bool is_timeout();
 
     bool send_body_to_proxy();
+    bool get_proxy_header();
 };

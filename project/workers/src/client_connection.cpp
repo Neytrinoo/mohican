@@ -298,8 +298,8 @@ bool ClientConnection::connect_to_upstream() {
     } else {
         struct sockaddr_in serv_addr;
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(location_->upstreams[0]->get_port());
-        if (inet_pton(AF_INET, location_->upstreams[0]->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
+        serv_addr.sin_port = htons(upstream->get_port());
+        if (inet_pton(AF_INET, upstream->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
         if (connect(get_upstream_sock(), (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {

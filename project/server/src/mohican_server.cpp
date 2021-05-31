@@ -349,9 +349,7 @@ int MohicanServer::server_reload(action_level_t level) {
         // need to us new master process
         // status daemonize return pid new master process
 
-        
-        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " +
-            std::to_string(getpid()) + " and new master process " + std::to_string(new_master_process), WARNING);
+        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " + std::to_string(getpid()), WARNING);
 
         if (apply_config(RELOAD_SERVER, SOFT_LEVEL) == -1) {
             write_to_logs("ERROR APPLY CONFIG", ERROR);

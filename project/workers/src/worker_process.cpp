@@ -17,9 +17,9 @@
 #define MAX_METHOD_LENGTH 4
 #define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
 
-extern bool is_hard_stop = false;
-extern bool is_soft_stop = false;
-extern bool is_soft_reload = false;
+bool is_hard_stop = false;
+bool is_soft_stop = false;
+bool is_soft_reload = false;
 
 WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_settings, std::vector<MohicanLog*>& vector_logs) :
         listen_sock(listen_sock), server_settings(server_settings), vector_logs(vector_logs) {
@@ -41,8 +41,6 @@ void WorkerProcess::run() {
         epoll_events_count = epoll_wait(epoll_fd, events, EPOLL_SIZE, EPOLL_RUN_TIMEOUT);
         for (int i = 0; i < epoll_events_count; ++i) {
             if (is_soft_stop) {
-                ev.data.fd = this->listen_sock;
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, this->listen_sock, &ev);
                 break;
             }
 
@@ -67,6 +65,11 @@ void WorkerProcess::run() {
 
     if (is_soft_stop || is_soft_reload) {
         this->message_to_log(INFO_SOFT_STOP_START);
+
+        ev.data.fd = this->listen_sock;
+        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, this->listen_sock, &ev);
+
+        epoll_events_count = epoll_wait(epoll_fd, events, EPOLL_SIZE, 1);
         for (int i = 0; i < epoll_events_count; ++i) {
             connection_status_t connection_status = this->client_connections[events[i].data.fd].connection_processing();
             if (connection_status == CONNECTION_FINISHED || connection_status == CONNECTION_TIMEOUT_ERROR ||
@@ -76,6 +79,7 @@ void WorkerProcess::run() {
                 epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]);
             }
         }
+
         this->message_to_log(INFO_SOFT_STOP_DONE);
     } else {
         this->message_to_log(INFO_HARD_STOP_DONE);
@@ -99,10 +103,13 @@ void WorkerProcess::setup_sighandlers() {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
+
     act.sa_handler = sighup_handler;
     sigaction(SIGHUP, &act, nullptr);
+
     act.sa_handler = sigint_handler;
     sigaction(SIGINT, &act, nullptr);
+
     act.sa_handler = sigpoll_handler;
     sigaction(SIGPOLL, &act, nullptr);
 }

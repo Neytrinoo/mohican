@@ -53,9 +53,10 @@ private:
         BAD_REQUEST,
         PASS_TO_PROXY,
         SEND_HEADER_TO_PROXY,
-        READ_BODY_FROM_CLIENT,
+        GET_BODY_FROM_CLIENT,
         SEND_BODY_TO_PROXY,
-        SENT_PROXY_RESPONSE_TO_CLIENT,
+        SEND_PROXY_RESPONSE_TO_CLIENT,
+        GET_BODY_OR_NOT_FROM_CLIENT,
         FAILED_TO_CONNECT,
         PROXY_TIMEOUT,
         GET_RESPONSE_FROM_PROXY,
@@ -92,6 +93,12 @@ private:
     std::string response_str_;
     std::string request_str_;
 
+    std::string upstream_buffer; // буфер для отправки запросов и ответов между клиентом и апстримом
+    int upstream_buffer_read_count = 0; // количество считанных данных с клиента или с апстрима всего
+    int upstream_buffer_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
+    size_t client_body_length; // длина тела пользовательского запроса
+    int upstream_send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
+
     int request_pos = 0;
     int response_pos = 0;
     int file_fd;
@@ -105,13 +112,15 @@ private:
 
     bool send_file();
 
-    bool is_end_request();  // check if the line_ has ended
-
-    void set_method();
+    bool get_body_from_client();
 
     void message_to_log(log_messages_t log_type, std::string &url, std::string &method);
 
     void message_to_log(log_messages_t log_type);
 
     bool connect_to_upstream();
+
+    bool is_timeout();
+
+    bool send_body_to_proxy();
 };

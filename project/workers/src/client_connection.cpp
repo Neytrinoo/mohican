@@ -114,7 +114,22 @@ connection_status_t ClientConnection::connection_processing() {
 
     if (stage == GET_RESPONSE_FROM_PROXY) {
         if (get_proxy_header()) {
+            response_str_ = response_.get_string();
             stage = GET_BODY_FROM_PROXY;
+        } else if (this->is_timeout()) {
+            this->message_to_log(ERROR_TIMEOUT);
+            return CONNECTION_TIMEOUT_ERROR;
+        }
+    }
+
+    if (stage == GET_BODY_FROM_PROXY) {
+        stage = SEND_PROXY_RESPONSE_TO_CLIENT;
+        return CHECKOUT_CLIENT;
+    }
+
+    if (stage == SEND_PROXY_RESPONSE_TO_CLIENT) {
+        if (send_header(response_str_, sock, response_pos)) {
+            return CONNECTION_FINISHED;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
@@ -175,11 +190,13 @@ bool ClientConnection::get_request() {
 
 bool ClientConnection::make_response_header() {
     if (stage == ROOT_FOUND) {
-        this->response_str_ = http_handler(request_, location_->root).get_string();
+        response_ = http_handler(request_, location_->root);
+        this->response_str_ = response_.get_string();
         this->file_fd = open((location_->root + request_.get_url()).c_str(), O_RDONLY);
     } else {
         this->file_fd = open(PAGE_404, O_RDONLY);
-        this->response_str_ = http_handler(request_).get_string();
+        this->response_ = http_handler(request_);
+        this->response_str_ = response_.get_string();
         this->message_to_log(ERROR_404_NOT_FOUND);
     }
     this->line_.clear();

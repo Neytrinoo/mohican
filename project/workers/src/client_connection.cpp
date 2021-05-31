@@ -358,11 +358,11 @@ bool ClientConnection::connect_to_upstream() {
     return true;
 }
 
-bool ClientConnection::get_body_from_client() {
+bool ClientConnection::get_body(int socket) {
     bool is_read_data = false;
     int result_read;
     while (this->upstream_buffer_ind < BUFFER_LENGTH &&
-           (result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+           (result_read = read(socket, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->upstream_buffer.push_back(this->last_char_);
         this->upstream_buffer_ind++;
         this->upstream_buffer_read_count++;

@@ -94,10 +94,10 @@ private:
     std::string request_str_;
 
     std::string upstream_buffer; // буфер для отправки запросов и ответов между клиентом и апстримом
-    int upstream_buffer_read_count = 0; // количество считанных данных с клиента или с апстрима всего
-    int upstream_buffer_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
-    size_t client_body_length; // длина тела пользовательского запроса
-    int upstream_send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
+    int buffer_read_count = 0; // количество считанных данных с клиента или с апстрима всего
+    int buffer_ind = 0; // количество (индекс) считанных данных за одну стадию (если не помещается в буфер)
+    size_t body_length; // длина тела пользовательского запроса
+    int send_body_ind = 0; // количество (индекс) отправленных байтов тела запроса клиента апстриму
 
     int request_pos = 0;
     int response_pos = 0;
@@ -112,7 +112,7 @@ private:
 
     bool send_file();
 
-    bool get_body_from_client();
+    bool get_body();
 
     void message_to_log(log_messages_t log_type, std::string &url, std::string &method);
 

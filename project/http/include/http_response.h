@@ -22,7 +22,16 @@ class HttpResponse : public HttpBase {
     std::string get_string();
 
     int get_status() const;
+
+    void add_line(const std::string &line);
+
+ private:
+    void add_first_line(const std::string &line);
+    void add_header(const std::string &line);
  private:
     int status_ = 0;
     std::string message_;
+    bool first_line_added_ = false;
+    bool headers_read_ = false;
+    bool request_ended_ = false;
 };

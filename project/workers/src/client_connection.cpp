@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "client_connection.h"
 #include "http_request.h"
@@ -43,6 +44,7 @@ connection_status_t ClientConnection::connection_processing() {
             is_succeeded = get_request();
         } catch (std::exception &e) {
             this->stage = BAD_REQUEST;
+            this->write_to_logs("some exception " + std::string(e.what()), INFO);
         }
         if (is_succeeded) {
             this->stage = this->process_location();
@@ -68,7 +70,7 @@ connection_status_t ClientConnection::connection_processing() {
             stage = SEND_HEADER_TO_PROXY;
             request_str_ = request_.get_string();
             this->message_to_log(INFO_CONNECTION_WITH_UPSTREAM, this->request_.get_url(), this->request_.get_method());
-            return CHECKOUT_PROXY;
+            return CHECKOUT_PROXY_FOR_WRITE;
         } else {
             stage = FAILED_TO_CONNECT;
         }
@@ -88,10 +90,11 @@ connection_status_t ClientConnection::connection_processing() {
         if (this->request_.get_method() == "GET") {
             this->stage = GET_RESPONSE_FROM_PROXY;
             this->write_to_logs("checkout to get response", INFO);
+            return CHECKOUT_PROXY_FOR_READ;
         } else {
             this->stage = GET_BODY_FROM_CLIENT;
             this->body_length = std::stoul(this->request_.get_headers()[CONTENT_LENGTH_HDR]);
-            return CHECKOUT_CLIENT;
+            return CHECKOUT_CLIENT_FOR_READ;
         }
     }
 
@@ -102,9 +105,10 @@ connection_status_t ClientConnection::connection_processing() {
                 this->stage = GET_RESPONSE_FROM_PROXY;
                 this->message_to_log(INFO_SEND_REQUEST_TO_UPSTREAM, this->request_.get_url(),
                                      this->request_.get_method());
+                return CHECKOUT_PROXY_FOR_READ;
             } else {
                 this->stage = GET_BODY_FROM_CLIENT;
-                return CHECKOUT_CLIENT;
+                return CHECKOUT_CLIENT_FOR_READ;
             }
         } else if (this->is_timeout()) { // TODO: добавление апстрима в бан лист
             stage = PROXY_TIMEOUT;
@@ -115,33 +119,65 @@ connection_status_t ClientConnection::connection_processing() {
         this->send_body_ind = 0;
         if (this->get_body(this->sock)) {
             this->stage = SEND_BODY_TO_PROXY;
-            return CHECKOUT_PROXY;
+            return CHECKOUT_PROXY_FOR_WRITE;
         } else if (this->is_timeout()) {
             return CONNECTION_TIMEOUT_ERROR;
         }
     }
 
     if (stage == GET_RESPONSE_FROM_PROXY) {
-        if (get_proxy_header()) {
+        bool is_something;
+        try {
+            is_something = get_proxy_header();
+        } catch (std::exception &e) {
+            this->write_to_logs("some exception, 130", INFO);
+        }
+        if (is_something) {
             response_str_ = response_.get_string();
-            stage = GET_BODY_FROM_PROXY;
+            this->body_length = std::stoul(response_.get_headers()[CONTENT_LENGTH_HDR]);
+            stage = SEND_PROXY_RESPONSE_TO_CLIENT;
+            return CHECKOUT_CLIENT_FOR_WRITE;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
             stage = PROXY_TIMEOUT;
+        } else {
+            this->write_to_logs("not get header", INFO);
         }
     }
 
     if (stage == GET_BODY_FROM_PROXY) {
-        stage = SEND_PROXY_RESPONSE_TO_CLIENT;
+        this->send_body_ind = 0;
+        if (this->get_body(this->proxy_sock)) {
+            this->stage = SEND_BODY_TO_CLIENT;
+            return CHECKOUT_PROXY_FOR_WRITE;
+        } else if (this->is_timeout()) {
+            return CONNECTION_TIMEOUT_ERROR;
+        }
         this->message_to_log(INFO_GET_RESPONSE_FROM_UPSTREAM, this->request_.get_url(), this->request_.get_method());
-        return CHECKOUT_CLIENT;
+        return CHECKOUT_CLIENT_FOR_WRITE;
+    }
+
+    if (stage == SEND_BODY_TO_CLIENT) {
+        if (this->send_body(this->sock)) {
+            this->get_body_ind = 0;
+            if (this->buffer_read_count >= this->body_length) {
+                close(this->proxy_sock);
+                return CONNECTION_FINISHED;
+            } else {
+                this->stage = GET_BODY_FROM_PROXY;
+                return CHECKOUT_PROXY_FOR_READ;
+            }
+        } else if (this->is_timeout()) { // TODO: добавление апстрима в бан лист
+            stage = PROXY_TIMEOUT;
+        }
     }
 
     if (stage == SEND_PROXY_RESPONSE_TO_CLIENT) {
         if (send_header(response_str_, sock, response_pos)) {
             this->message_to_log(INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT, this->request_.get_url(),
                                  this->request_.get_method());
-            return CONNECTION_FINISHED;
+            this->stage = GET_BODY_FROM_PROXY;
+            return CHECKOUT_PROXY_FOR_READ;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
             return CONNECTION_TIMEOUT_ERROR;
@@ -238,8 +274,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
         is_write_data = true;
     }
     if (write_result == -1) {
-        this->stage = ERROR_STAGE;
-        this->message_to_log(ERROR_SEND_RESPONSE);
+        this->write_to_logs(std::string(strerror(errno)), INFO);
         return false;
     }
 
@@ -387,7 +422,11 @@ int ClientConnection::get_client_sock() {
 
 bool ClientConnection::connect_to_upstream() {
     this->write_to_logs("connect to upstream start", INFO);
-    if ((get_upstream_sock() = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((this->proxy_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        return false;
+    }
+    int enable = 1;
+    if (setsockopt(this->get_upstream_sock(), SOL_SOCKET, SO_KEEPALIVE, &enable, sizeof(enable)) == -1) {
         return false;
     }
     this->write_to_logs("connect to upstream do 1", INFO);
@@ -415,6 +454,7 @@ bool ClientConnection::connect_to_upstream() {
     } else {
         this->write_to_logs("connect to upstream do 1.2", INFO);
         struct sockaddr_in serv_addr;
+        memset(&serv_addr, 0 , sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = htons(upstream->get_port());
         this->write_to_logs("connect to upstream do 2", INFO);

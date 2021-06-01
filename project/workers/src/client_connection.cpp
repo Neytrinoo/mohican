@@ -18,7 +18,7 @@
 #include "http_response.h"
 #include "http_handle.h"
 
-#define CLIENT_SEC_TIMEOUT 1 // maximum request idle time
+#define CLIENT_SEC_TIMEOUT 5 // maximum request idle time
 #define PAGE_404 "public/404.html"
 #define LENGTH_LINE_FOR_RESERVE 256
 #define BUFFER_LENGTH 1024

@@ -78,7 +78,7 @@ HttpRequest::HttpRequest(const std::string& str) {
 }
 
 void HttpRequest::add_line(const std::string& line) {
-    if (line.length() == 2 && line[0] == '\r') {
+    if ((line.length() == 2 || line.length() == 3) && (line[0] == '\r' || line[1] == '\r')) {
         request_ended_ = true;
         return;
     }

@@ -15,6 +15,8 @@ int process_soft_stop = 0;
 int process_hard_stop = 0;
 int process_soft_reload = 0;
 int process_hard_reload = 0;
+int has_old_master_stopped = 0;
+pid_t new_master_pid = 0;
 
 MohicanServer::MohicanServer() {
     this->mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
@@ -230,13 +232,16 @@ int MohicanServer::server_start() {
             }
             process_hard_reload = 0;
         }
+
+        //sleep(1e-6);
     }
 
     return 0;
 }
 
-void MohicanServer::sighup_handler(int sig) {
+void MohicanServer::sighup_handler(int sig, siginfo_t* info, void* param) {
     process_soft_stop = 1;
+    new_master_pid = info->si_pid;
 }
 
 void MohicanServer::sigint_handler(int sig) {
@@ -251,6 +256,10 @@ void MohicanServer::sigalrm_handler(int sig) {
     process_hard_reload = 1;
 }
 
+void MohicanServer::sigchld_handler(int sig) {
+    has_old_master_stopped = 1;
+}
+
 int MohicanServer::process_setup_signals() {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
@@ -259,14 +268,21 @@ int MohicanServer::process_setup_signals() {
     act.sa_handler = sigpipe_handler;
     sigaction(SIGPIPE, &act, nullptr);
 
-    act.sa_handler = sighup_handler;
+    act.sa_flags = SA_SIGINFO;
+    act.sa_handler = NULL;
+    act.sa_sigaction = sighup_handler;
     sigaction(SIGHUP, &act, nullptr);
 
+    act.sa_flags = 0;
+    act.sa_sigaction = NULL;
     act.sa_handler = sigint_handler;
     sigaction(SIGINT, &act, nullptr);
 
     act.sa_handler = sigalrm_handler;
     sigaction(SIGALRM, &act, nullptr);
+
+    act.sa_handler = sigchld_handler;
+    sigaction(SIGCHLD, &act, nullptr);
 
     return 0;
 }
@@ -298,17 +314,20 @@ int MohicanServer::server_stop(action_level_t level) {
             kill(i, SIGHUP);
         }
         for (auto &i : this->workers_pid) {
+            write_to_logs("workers size " + std::to_string(workers_pid.size()), INFO);
             waitpid(i, &status, 0);
         }
 
         if (process_soft_reload == 2) {
-            write_to_logs("OLD MASTER SERVER STOPPED!", INFO);
+            write_to_logs("OLD MASTER SERVER STOPPED! PID " + std::to_string(getpid()), INFO);
+            kill(new_master_pid, SIGCHLD);
         } else {
             close(this->listen_sock);
             delete_pid_file();
             write_to_logs("SERVER STOPPED!", INFO);
         }
 
+        write_to_logs("Before exit", WARNING);
         exit(0);
     }
 
@@ -333,6 +352,7 @@ int MohicanServer::server_reload(action_level_t level) {
     }
 
     if (level == SOFT_LEVEL) {
+        sleep(4);
         write_to_logs("SOFT SERVER RELOADING...", WARNING);
 
         new_mohican_settings = MainServerSettings(CONFIG_FILE_PATH);
@@ -343,16 +363,20 @@ int MohicanServer::server_reload(action_level_t level) {
             write_to_logs("ERROR DAEMONIZE", ERROR);
             return -1;
         }
+
+        if (getpid() != old_master_process) {
+            write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " +
+                std::to_string(getpid()), WARNING);
+        }
+
         if (getpid() == old_master_process) {
             process_soft_reload = 2;
+            write_to_logs("Old master returned PID " + std::to_string(getpid()), WARNING);
             return 0;
         }
 
         // need to us new master process
         // status daemonize return pid new master process
-
-        write_to_logs("SOFT SERVER RELOADING...New master process successfully started PID " + std::to_string(getpid()),
-                      WARNING);
 
         if (apply_config(RELOAD_SERVER, SOFT_LEVEL) == -1) {
             write_to_logs("ERROR APPLY CONFIG", ERROR);
@@ -361,8 +385,11 @@ int MohicanServer::server_reload(action_level_t level) {
 
         int status;
         kill(old_master_process, SIGHUP);
-        waitpid(old_master_process, &status, 0);
+        write_to_logs("Sent kill to old master process ", WARNING);
 
+        while (!has_old_master_stopped);
+        has_old_master_stopped = 0;
+        
         write_to_logs("OLD MASTER FINISHED ALL CONNECTIONS WITH STATUS: " +
                       std::to_string(WEXITSTATUS(status)) + " PID " + std::to_string(getpid()), INFO);
 
@@ -373,6 +400,7 @@ int MohicanServer::server_reload(action_level_t level) {
         server = mohican_settings.get_server();
 
         workers_pid = new_workers_pid;
+        new_workers_pid.clear();
 
         old_master_process = new_master_process;
         new_master_process = 0;

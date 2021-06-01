@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "client_connection.h"
 #include "http_request.h"
@@ -230,6 +231,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
             write_result = write(socket, "\r\n", 2);
             if (write_result == -1) {
                 this->stage = ERROR_STAGE;
+                this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
                 this->message_to_log(ERROR_SEND_RESPONSE);
                 return false;
             }
@@ -239,6 +241,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
     }
     if (write_result == -1) {
         this->stage = ERROR_STAGE;
+        this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
         this->message_to_log(ERROR_SEND_RESPONSE);
         return false;
     }
@@ -291,8 +294,8 @@ void ClientConnection::message_to_log(log_messages_t log_type) {
                                 + std::to_string(this->sock) + "]", ERROR);
             break;
         case ERROR_TIMEOUT:
-            this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);
+            /*this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);*/
             break;
         case ERROR_READING_REQUEST:
             this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "

@@ -32,6 +32,8 @@ extern int process_soft_stop;
 extern int process_hard_stop;
 extern int process_soft_reload;
 extern int process_hard_reload;
+extern int has_old_master_stopped;
+extern pid_t new_master_pid;
 extern std::string path_to_config;
 
 typedef enum {
@@ -62,10 +64,11 @@ public:
         int delete_pid_file();
 
     static int process_setup_signals();  // set handlers to signals
-        static void sighup_handler(int sig);  // handler for soft stop
+        static void sighup_handler(int sig, siginfo_t* info, void* param);  // handler for soft stop
         static void sigint_handler(int sig);  // handler for hard stop
         static void sigpipe_handler(int sig);  // handler for soft reload
         static void sigalrm_handler(int sig);  // handler for hard reload
+        static void sigchld_handler(int sig);  // handler for end of soft stop
 
     int server_stop(action_level_t level);
 

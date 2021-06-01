@@ -46,6 +46,7 @@ private:
     int sock;
     int proxy_sock;
     clock_t timeout;
+    clock_t start_connection;
 
     std::vector<MohicanLog*> vector_logs;
 

@@ -67,18 +67,26 @@ void WorkerProcess::run() {
                     close(client_connection->get_client_sock());
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_client_sock(), &events[i]);
                     delete client_connection;
-                } else if (connection_status == CHECKOUT_PROXY) {
+                } else if (connection_status == CHECKOUT_PROXY_FOR_READ || connection_status == CHECKOUT_PROXY_FOR_WRITE) {
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_client_sock(), &events[i]);
 
                     ev.data.ptr = (ClientConnection *) client_connection;
-                    ev.events = EPOLLOUT;
+                    if (connection_status == CHECKOUT_PROXY_FOR_READ) {
+                        ev.events = EPOLLIN;
+                    } else {
+                        ev.events = EPOLLOUT;
+                    }
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_upstream_sock(), &ev);
                     this->write_to_logs("checkout to proxy", INFO);
-                } else if (connection_status == CHECKOUT_CLIENT) {
+                } else if (connection_status == CHECKOUT_CLIENT_FOR_READ || connection_status == CHECKOUT_CLIENT_FOR_WRITE) {
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_upstream_sock(), &events[i]);
 
                     ev.data.ptr = (ClientConnection *) client_connection;
-                    ev.events = EPOLLIN;
+                    if (connection_status == CHECKOUT_CLIENT_FOR_READ) {
+                        ev.events = EPOLLIN;
+                    } else {
+                        ev.events = EPOLLOUT;
+                    }
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_client_sock(), &ev);
                     this->write_to_logs("checkout to client", INFO);
                 }

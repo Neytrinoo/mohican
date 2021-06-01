@@ -176,7 +176,7 @@ bool ClientConnection::get_request() {
     this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
     while ((result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->line_.push_back(last_char_);
-        if (this->last_char_ == '\n') {
+        if (this->last_char_ == '\n' && this->line_.length() != 1) {
             this->request_.add_line(line_);
             this->line_.clear();
             this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
@@ -438,8 +438,9 @@ bool ClientConnection::get_proxy_header() {
     this->write_to_logs("we are in get_proxy_header", INFO);
     while ((result_read = read(proxy_sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
         this->upstream_buffer.push_back(last_char_);
-        if (this->last_char_ == '\n') {
-            this->response_.add_line(line_);
+        if (this->last_char_ == '\n' && this->upstream_buffer.length() != 1) {
+            this->response_.add_line(this->upstream_buffer);
+            this->write_to_logs(this->upstream_buffer, INFO);
             this->upstream_buffer.clear();
             this->upstream_buffer.reserve(BUFFER_LENGTH);
         }

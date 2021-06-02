@@ -290,13 +290,13 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
 
 bool ClientConnection::send_file() {
     bool is_write_data = false;
-    char c;
+    char c[100];
     int read_code;
     int write_result;
 
-    read_code = read(this->file_fd, &c, sizeof(c));
-    while (read_code > 0 && (write_result = write(this->sock, &c, sizeof(c)) == sizeof(c))) {
-        read_code = read(this->file_fd, &c, sizeof(c));
+    read_code = read(this->file_fd, &c, 100);
+    while (read_code > 0 && (write_result = write(this->sock, &c, 100) > 0)) {
+        read_code = read(this->file_fd, &c, 100);
         is_write_data = true;
     }
 

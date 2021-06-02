@@ -135,6 +135,7 @@ case $1 in
   start)
     start
   ;;
+  
   stop)
   shift
   case $1 in
@@ -147,6 +148,7 @@ case $1 in
   esac
   echo "Usage : <hard|soft>";
   ;;
+
   reload)
   shift
   case $1 in
@@ -159,12 +161,15 @@ case $1 in
   esac
   echo "Usage : <hard|soft>";
   ;;
+
   status)
     status
   ;;
+
   build)
     build
   ;;
+
   create)
     shift
     if [ "$1" =  config ]; then

@@ -14,9 +14,11 @@ get_pid() {
   PID_MASTER_PROCESS=$(head -n 1 "$PID_FILE")
 }
 
+
 get_has_server_started() {
   HAS_SERVER_STARTED=$(ps aux | grep ./mohican.out | wc -l)
 }
+
 
 start() {
   if [ ! -d cmake-build-debug ]; then
@@ -48,6 +50,7 @@ start() {
   fi
 }
 
+
 stop_soft() {
   get_has_server_started
   if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
@@ -61,6 +64,7 @@ stop_soft() {
     exit 0
 	fi
 }
+
 
 stop_hard() {
   get_has_server_started
@@ -76,6 +80,7 @@ stop_hard() {
   fi
 }
 
+
 reload_soft() {
   get_has_server_started
   if [ ! "$HAS_SERVER_STARTED" \> 1 ]; then
@@ -89,6 +94,7 @@ reload_soft() {
     exit 0
   fi
 }
+
 
 reload_hard() {
   get_has_server_started
@@ -104,6 +110,7 @@ reload_hard() {
   fi
 }
 
+
 status() {
   get_has_server_started
   if [ "$HAS_SERVER_STARTED" \> 1 ]; then
@@ -113,9 +120,11 @@ status() {
   fi
 }
 
+
 create_config() {
   cp "$DEFAULT_PATH_TO_CONFIG" settings/mohican.conf
 }
+
 
 build() {
   if [ -d cmake-build-debug ]; then
@@ -131,11 +140,12 @@ build() {
   fi
 }
 
+
 case $1 in
   start)
     start
   ;;
-  
+
   stop)
   shift
   case $1 in

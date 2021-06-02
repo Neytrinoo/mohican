@@ -268,7 +268,9 @@ int MohicanServer::process_setup_signals() {
 int MohicanServer::server_stop(action_level_t level) {
     if (level == HARD_LEVEL) {
         write_to_logs("HARD SERVER STOP...", WARNING);
-        close(this->listen_sock);
+        if (process_hard_reload != 2) {
+            close(this->listen_sock);
+        }
 
         int status;
         for (auto &i : this->workers_pid) {

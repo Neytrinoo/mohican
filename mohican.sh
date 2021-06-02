@@ -19,6 +19,11 @@ get_has_server_started() {
 }
 
 start() {
+  if [ ! -d cmake-build-debug ]; then
+    echo "To start server you need to make 'sudo ./mohican.sh build'"
+    exit 1
+  fi
+
   get_has_server_started
   if [ "$HAS_SERVER_STARTED" \> 1 ]; then
     echo "Server has already started!"
@@ -33,7 +38,9 @@ start() {
     touch access.log
     touch error.log
     echo "Starting $SERVER_NAME Server..."
-    rm mohican.out
+    if [ -f mohican.out ]; then
+      rm mohican.out
+    fi
     cp ./cmake-build-debug/mohican.out mohican.out
     "$MOHICANS_HOME"/mohican.out
     echo "Server started!"
@@ -110,6 +117,20 @@ create_config() {
   cp "$DEFAULT_PATH_TO_CONFIG" settings/mohican.conf
 }
 
+build() {
+  if [ -d cmake-build-debug ]; then
+    cd cmake-build-debug
+    make clean && make
+    cd ..
+  else
+    mkdir cmake-build-debug
+    cd cmake-build-debug
+    cmake ..
+    make clean && make
+    cd ..
+  fi
+}
+
 case $1 in
   start)
     start
@@ -119,11 +140,9 @@ case $1 in
   case $1 in
     soft)
       stop_soft
-      exit 0
     ;;
     hard)
       stop_hard
-      exit 0
     ;;
   esac
   echo "Usage : <hard|soft>";
@@ -133,17 +152,18 @@ case $1 in
   case $1 in
     soft)
       reload_soft
-      exit 0
     ;;
     hard)
       reload_hard
-      exit 0
     ;;
   esac
   echo "Usage : <hard|soft>";
   ;;
   status)
     status
+  ;;
+  build)
+    build
   ;;
   create)
     shift
@@ -158,7 +178,7 @@ case $1 in
     if [ "$(ps aux | grep ./mohican.out | wc -l)" \> 1 ]; then
       echo "Usage : <stop|reload|status>";
     else
-      echo "Usage : <start|status|create>";
+      echo "Usage : <start|build|status|create>";
     fi
   ;;
 esac

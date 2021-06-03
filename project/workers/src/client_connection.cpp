@@ -259,17 +259,10 @@ bool ClientConnection::make_response_header() {
 bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
     bool is_write_data = false;
     int write_result;
-    while ((write_result = write(socket, str.c_str() + pos, 1)) == 1) {
+    while ((write_result = write(socket, &str.c_str()[pos], sizeof(str.c_str()[pos]))) == 1) {
         pos++;
-        if (pos == str.size() - 1) {
+        if (pos == str.size()) {
             str.clear();
-            write_result = write(socket, "\r\n", 2);
-            if (write_result == -1) {
-                this->stage = ERROR_STAGE;
-                //this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
-                this->message_to_log(ERROR_SEND_RESPONSE);
-                return false;
-            }
             return true;
         }
         is_write_data = true;
@@ -290,12 +283,12 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
 
 bool ClientConnection::send_file() {
     bool is_write_data = false;
-    char c;
+    char c[256];
     int read_code;
     int write_result;
 
     read_code = read(this->file_fd, &c, sizeof(c));
-    while (read_code > 0 && (write_result = write(this->sock, &c, sizeof(c)) == sizeof(c))) {
+    while (read_code > 0 && (write_result = write(this->sock, &c, sizeof(c)) > 0)) {
         read_code = read(this->file_fd, &c, sizeof(c));
         is_write_data = true;
     }

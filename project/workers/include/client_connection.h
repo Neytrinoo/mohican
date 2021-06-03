@@ -9,6 +9,8 @@
 #include "mohican_log.h"
 #include "define_log.h"
 
+#define MAX_FILE_READ 100
+
 typedef enum {
     CONNECTION_PROCESSING,
     CONNECTION_PROXY,
@@ -115,6 +117,8 @@ private:
     int request_pos = 0;
     int response_pos = 0;
     int file_fd;
+    //int write_result = 0;
+    //char file_bytes[MAX_FILE_READ];
 
     // return true if their connection processing stage is finished
     bool get_request();

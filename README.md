@@ -11,22 +11,32 @@ Features:
 * Mohican writes information into logs.
 
 ## List of commands
-### Start mohican web server
+### 1. Start mohican web server.
 ```
 $ sudo ./mohican.sh start
 ```
 
-### Create new config
+### 2. Build mohican web server.
+```
+$ sudo ./mohican.sh build
+```
+
+### 3. Get help about commands.
+```
+$ sudo ./mohican.sh help <command>
+```
+
+### 4. Create new config.
 ```
 $ sudo ./mohican.sh create config
 ```
 
-### Get status
+### 5. Get status.
 ```
 $ sudo ./mohican.sh status
 ```
 
-### Reload mohican web server
+### 6. Reload mohican web server.
 
 #### Reload hard
 ```
@@ -38,7 +48,7 @@ $ sudo ./mohican.sh reload hard
 $ sudo ./mohican.sh reload soft
 ```
 
-### Stop mohican web server
+### 7. Stop mohican web server.
 
 #### Stop hard
 ```
@@ -51,7 +61,28 @@ $ sudo ./mohican.sh stop soft
 ```
 
 ## Before start
-### You need to install boost library
+### 1. You need to install gcc.
+```
+$ sudo apt-get install gcc
+```
+
+### 2. You need to install cmake.
+```
+$ sudo apt-get install cmake
+```
+
+### 3. You need to install boost library.
 ```
 $ sudo apt-get install libboost-all-dev
+```
+
+## Getting started
+### 1. You need to clone mohican repository.
+```
+$ git clone https://github.com/Neytrinoo/mohican
+```
+
+### 2. You need to start build command.
+```
+$ sudo ./mohican.sh build
 ```

@@ -8,7 +8,7 @@
 typedef struct {
     std::string url;
     std::string root;
-    std::vector<UpstreamSettings *> upstreams;
+    std::vector<UpstreamSettings> upstreams;
     bool case_sensitive;
     bool is_access_log;
     bool is_error_log;
@@ -49,7 +49,7 @@ private:
 
     std::map<std::string, UpstreamSettings> upstreams;
 
-    UpstreamSettings *get_upstream(std::string &upstream_address);
+    UpstreamSettings get_upstream(std::string &upstream_address);
     /*
     const std::vector<std::string> valid_properties = {"listen", "root", "add_root", "access_log", "error_log",
                                                        "location"}; */

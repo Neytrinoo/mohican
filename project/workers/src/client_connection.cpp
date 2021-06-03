@@ -375,7 +375,7 @@ void ClientConnection::message_to_log(log_messages_t log_type, std::string &url,
             break;
         case INFO_CONNECTION_WITH_UPSTREAM:
             this->write_to_logs(
-                    "CONNECT TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() + "] [URL "
+                    "CONNECT TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0].get_upstream_address() + "] [URL "
                     + url
                     + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                     std::to_string(this->sock)
@@ -383,20 +383,20 @@ void ClientConnection::message_to_log(log_messages_t log_type, std::string &url,
             break;
         case INFO_SEND_REQUEST_TO_UPSTREAM:
             this->write_to_logs(
-                    "SEND REQUEST TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() +
+                    "SEND REQUEST TO UPSTREAM [UPSTREAM " + this->location_->upstreams[0].get_upstream_address() +
                     "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                     std::to_string(this->sock) + "]", INFO);
             break;
         case INFO_GET_RESPONSE_FROM_UPSTREAM:
             this->write_to_logs(
-                    "GET RESPONSE FROM UPSTREAM [UPSTREAM " + this->location_->upstreams[0]->get_upstream_address() +
+                    "GET RESPONSE FROM UPSTREAM [UPSTREAM " + this->location_->upstreams[0].get_upstream_address() +
                     "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                     std::to_string(this->sock) + "]", INFO);
             break;
         case INFO_SEND_UPSTREAM_RESPONSE_TO_CLIENT:
             this->write_to_logs(
                     "SEND UPSTREAM RESPONSE TO CLIENT [UPSTREAM " +
-                    this->location_->upstreams[0]->get_upstream_address() +
+                    this->location_->upstreams[0].get_upstream_address() +
                     "] [URL " + url + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                     std::to_string(this->sock) + "]", INFO);
             break;
@@ -446,10 +446,12 @@ bool ClientConnection::connect_to_upstream() {
         return false;
     }
     this->write_to_logs("connect to upstream do 1", INFO);
-    UpstreamSettings *upstream = location_->upstreams[0];
+    UpstreamSettings upstream;
+    upstream = location_->upstreams[0];
+    std::string str = upstream.get_upstream_address();
     this->write_to_logs("connect to upstream do 1.1", INFO);
-    this->write_to_logs(std::to_string(upstream->get_port()), INFO);
-    if (!(upstream->is_ip_address())) {
+    this->write_to_logs("ups: " + str, INFO);
+    if (!(upstream.is_ip_address())) {
         this->write_to_logs("connect to upstream do 1.1.1", INFO);
         struct sockaddr_in *serv_addr;
         struct addrinfo *result = NULL;
@@ -458,12 +460,12 @@ bool ClientConnection::connect_to_upstream() {
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = IPPROTO_TCP;
-        if (getaddrinfo(upstream->get_upstream_address().c_str(), NULL, &hints, &result)) {
+        if (getaddrinfo(upstream.get_upstream_address().c_str(), NULL, &hints, &result)) {
             return false;
         }
         serv_addr = (struct sockaddr_in *) result->ai_addr;
         serv_addr->sin_family = AF_INET;
-        serv_addr->sin_port = htons(upstream->get_port());
+        serv_addr->sin_port = htons(upstream.get_port());
         if (connect(get_upstream_sock(), (struct sockaddr *) serv_addr, sizeof(*serv_addr)) < 0) {
             return false;
         }
@@ -472,9 +474,9 @@ bool ClientConnection::connect_to_upstream() {
         struct sockaddr_in serv_addr;
         memset(&serv_addr, 0 , sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(upstream->get_port());
+        serv_addr.sin_port = htons(upstream.get_port());
         this->write_to_logs("connect to upstream do 2", INFO);
-        if (inet_pton(AF_INET, upstream->get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
+        if (inet_pton(AF_INET, upstream.get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
         this->write_to_logs("connect to upstream do 3", INFO);

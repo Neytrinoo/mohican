@@ -75,25 +75,25 @@ void ServerSettings::print_properties() {
     for (auto &i : this->exact_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
         for (auto &upstr : i.upstreams) {
-            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+            std::cout << "upstream proxy path: " << upstr.get_upstream_address() << std::endl;
         }
     }
     for (auto &i : this->preferential_prefix_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
         for (auto &upstr : i.upstreams) {
-            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+            std::cout << "upstream proxy path: " << upstr.get_upstream_address() << std::endl;
         }
     }
     for (auto &i : this->regex_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
         for (auto &upstr : i.upstreams) {
-            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+            std::cout << "upstream proxy path: " << upstr.get_upstream_address() << std::endl;
         }
     }
     for (auto &i : this->prefix_match_urls) {
         std::cout << "url: " << i.url << "; root: " << i.root << std::endl;
         for (auto &upstr : i.upstreams) {
-            std::cout << "upstream proxy path: " << upstr->get_upstream_address() << std::endl;
+            std::cout << "upstream proxy path: " << upstr.get_upstream_address() << std::endl;
         }
     }
 
@@ -126,12 +126,12 @@ int ServerSettings::get_number_of_location_property(std::string property) {
     return -1;
 }
 
-UpstreamSettings *ServerSettings::get_upstream(std::string &upstream_address) {
+UpstreamSettings ServerSettings::get_upstream(std::string &upstream_address) {
     if (this->upstreams.find(upstream_address) == this->upstreams.end()) {
         throw InvalidConfigException(
                 "the upstream defined in the 'location' block is not defined in the 'upstreams' block");
     }
-    return &(this->upstreams[upstream_address]);
+    return this->upstreams[upstream_address];
 }
 
 void ServerSettings::set_location_property(int number_of_property, std::string value, location_t &location) {

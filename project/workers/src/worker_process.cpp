@@ -30,7 +30,7 @@ WorkerProcess::WorkerProcess(int listen_sock, class ServerSettings *server_setti
 
 void WorkerProcess::run() {
     static struct epoll_event ev, events[EPOLL_SIZE];
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN;
 
     int epoll_fd = epoll_create(EPOLL_SIZE);
     ev.data.fd = this->listen_sock;

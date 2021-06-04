@@ -1,7 +1,7 @@
 # Welcome to mohican
 
 ## What's mohican?
-Mohican is a free, open-source web server made for UNIX systems.
+Mohican is a free, open-source web server made for Linux systems.
 
 Features:
 * Mohican can process http requests.

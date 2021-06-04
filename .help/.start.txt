@@ -1,0 +1,14 @@
+START(1)                                         Mohican General Commands Manual                                        START(1)
+
+NAME
+
+    start — starting Mohican server
+
+DESCRIPTION
+
+    Starting the server involves clearing the logs, clearing 
+	the pid file created to display the processes involved in the 
+	operation of the server. The server master process is being 
+	daemonized to ensure that the process is independent of bash or other 
+	environments. Bind socket is performed, adding new workers that inherit 
+	this handle to get connections. Worker processes produce accept new connections.

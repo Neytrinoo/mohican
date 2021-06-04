@@ -147,29 +147,29 @@ case $1 in
   ;;
 
   stop)
-  shift
-  case $1 in
-    soft)
-      stop_soft
-    ;;
-    hard)
-      stop_hard
-    ;;
-  esac
-  echo "Usage : <hard|soft>";
+    shift
+    case $1 in
+      soft)
+        stop_soft
+      ;;
+      hard)
+        stop_hard
+      ;;
+    esac
+    echo "Usage : <hard|soft>";
   ;;
 
   reload)
-  shift
-  case $1 in
-    soft)
-      reload_soft
-    ;;
-    hard)
-      reload_hard
-    ;;
-  esac
-  echo "Usage : <hard|soft>";
+    shift
+    case $1 in
+      soft)
+        reload_soft
+      ;;
+      hard)
+        reload_hard
+      ;;
+    esac
+    echo "Usage : <hard|soft>";
   ;;
 
   status)
@@ -178,6 +178,33 @@ case $1 in
 
   build)
     build
+  ;;
+
+  help)
+    shift
+    case $1 in
+      start)
+        cat .help/.start.txt
+      ;;
+      stop)
+        cat .help/.stop.txt
+      ;;
+      reload)
+        cat .help/.reload.txt
+      ;;
+      status)
+        cat .help/.status.txt
+      ;;
+      build)
+        cat .help/.build.txt
+      ;;
+      create)
+        cat .help/.create.txt
+      ;;
+      *)
+        echo "Usage : <start|stop|reload|status|build|create>";
+      ;;
+    esac
   ;;
 
   create)
@@ -191,9 +218,9 @@ case $1 in
 
   *)
     if [ "$(ps aux | grep ./mohican.out | wc -l)" \> 1 ]; then
-      echo "Usage : <stop|reload|status>";
+      echo "Usage : <stop|reload|status|help>";
     else
-      echo "Usage : <start|build|status|create>";
+      echo "Usage : <start|build|status|create|help>";
     fi
   ;;
 esac

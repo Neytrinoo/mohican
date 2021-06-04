@@ -1,0 +1,21 @@
+STOP(1)                                         Mohican General Commands Manual                                        STOP(1)
+
+NAME
+
+    stop — stop mohican server on different level
+
+KEYS
+
+    stop soft
+    stop hard
+
+DESCRIPTION
+
+    Stopping the server with different keys.
+ 
+    When soft-stopping, the server processes the old connections received by the master, 
+	but closes the socket to receive new connections. At the end of processing old requests, 
+	the server stops, sending signals to the worker processes for completion.
+                
+    In the case of a hard stop, the server interrupts processing of all connections and terminates 
+	its work, sending signals to the worker processes for completion.

@@ -1,0 +1,11 @@
+BUILD(1)                                         Mohican General Commands Manual                                        BUILD(1)
+
+NAME
+
+    build — build project, prepare to work
+
+DESCRIPTION
+
+    Build the project by creating the cmake-build-debug 
+	folder, calling the creation of the cmake environment. 
+	Then build the project.

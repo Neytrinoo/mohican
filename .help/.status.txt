@@ -1,0 +1,9 @@
+STATUS(1)                                         Mohican General Commands Manual                                        STATUS(1)
+
+NAME
+
+    status — check status server
+
+DESCRIPTION
+
+    Check status server by sending request to system is mohican server processes active. Used command 'ps aux | grep mohican | wc -l'

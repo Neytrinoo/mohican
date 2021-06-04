@@ -1,0 +1,13 @@
+CREATE CONFIG(1)                                         Mohican General Commands Manual                                        CREATE CONFIG(1)
+
+NAME
+
+    create config — create default config
+
+DESCRIPTION
+
+    Creates a default config that displays the basic syntax 
+	of the configuration file. Contains the location fields for 
+	determining the root directory of the static search for the received url. 
+	Also the IP address of the server, the port of operation of the server, 
+	log settings (names of access and error logs, logging levels).

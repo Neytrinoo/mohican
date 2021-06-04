@@ -1,0 +1,25 @@
+RELOAD(1)                                         Mohican General Commands Manual                                        RELOAD(1)
+
+NAME
+
+    reload — reload mohican server on different level
+
+KEYS
+
+    reload soft
+    reload hard
+
+DESCRIPTION
+
+    The server reload with the hard and stop keys.     
+
+    Reloading with the soft level implies the creation of a new master process, 
+	bind socket, and the creation of worker processes by this process. Then the new master 
+	process sends a soft stop signal to the old master process, by which it blocks the socket 
+	to accept new connections, terminates the old connections. After that, it shuts down 
+	the worker processes and exits itself with the status displayed in the log with the INFO level.          
+
+    Reloading with the hard level implies a similar algorithm, with sending a hard stop signal 
+	to the old master process. When this signal is received, the old master process breaks 
+	all current connections, shuts down the worker processes, and then exits with 
+	the status displayed in the log with the INFO level.

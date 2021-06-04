@@ -41,7 +41,7 @@ void WorkerProcess::run() {
     while (!is_hard_stop && !is_soft_stop) {
         epoll_events_count = epoll_wait(epoll_fd, events, EPOLL_SIZE, EPOLL_RUN_TIMEOUT);
         for (int i = 0; i < epoll_events_count; ++i) {
-            if (is_soft_stop) {
+            if (is_soft_stop || is_hard_stop) {
                 break;
             }
 

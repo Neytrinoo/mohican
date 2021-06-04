@@ -25,7 +25,7 @@
 
 ClientConnection::ClientConnection(class ServerSettings *server_settings,
                                    std::vector<MohicanLog *> &vector_logs) : server_settings(server_settings),
-                                                                             vector_logs(vector_logs) {
+                                                                             vector_logs(vector_logs), start_connection(clock()) {
 
 }
 
@@ -195,7 +195,8 @@ connection_status_t ClientConnection::connection_processing() {
 
     if (this->stage == SEND_FILE) {
         if (this->send_file()) {
-            this->message_to_log(INFO_CONNECTION_FINISHED);
+            std::string url = request_.get_url();
+            this->message_to_log(INFO_CONNECTION_FINISHED, url, request_.get_method());
             return CONNECTION_FINISHED;
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
@@ -249,7 +250,6 @@ bool ClientConnection::make_response_header() {
         this->file_fd = open(PAGE_404, O_RDONLY);
         this->response_ = http_handler(request_);
         this->response_str_ = response_.get_string();
-        this->message_to_log(ERROR_404_NOT_FOUND);
     }
     this->line_.clear();
 
@@ -266,7 +266,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
             write_result = write(socket, "\r\n", 2);
             if (write_result == -1) {
                 this->stage = ERROR_STAGE;
-                this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
+                //this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
                 this->message_to_log(ERROR_SEND_RESPONSE);
                 return false;
             }
@@ -276,7 +276,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
     }
     if (write_result == -1) {
         this->stage = ERROR_STAGE;
-        this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
+        //this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
         this->message_to_log(ERROR_SEND_RESPONSE);
         return false;
     }
@@ -319,19 +319,19 @@ bool ClientConnection::send_file() {
 
 void ClientConnection::message_to_log(log_messages_t log_type) {
     switch (log_type) {
-        case INFO_CONNECTION_FINISHED:
-            this->write_to_logs("Connection finished successfully [WORKER PID " + std::to_string(getpid()) + "]" +
+        /*case INFO_CONNECTION_FINISHED:
+            this->write_to_logs("Connection finished [WORKER PID " + std::to_string(getpid()) + "]" +
                                 " [CLIENT SOCKET "
                                 + std::to_string(this->sock) + "]", INFO);
-            break;
-        case ERROR_404_NOT_FOUND:
+            break;*/
+        /*case ERROR_404_NOT_FOUND:
             this->write_to_logs("404 NOT FOUND [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
                                 + std::to_string(this->sock) + "]", ERROR);
-            break;
-        case ERROR_TIMEOUT:
-            /*this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
-                                + std::to_string(this->sock) + "]", ERROR);*/
-            break;
+            break;*/
+        /*case ERROR_TIMEOUT:
+            this->write_to_logs("TIMEOUT ERROR [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
+                                + std::to_string(this->sock) + "]", ERROR);
+            break;*/
         case ERROR_READING_REQUEST:
             this->write_to_logs("Reading request error [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET "
                                 + std::to_string(this->sock) + "]", ERROR);
@@ -352,13 +352,33 @@ void ClientConnection::message_to_log(log_messages_t log_type) {
 }
 
 void ClientConnection::message_to_log(log_messages_t log_type, std::string &url, std::string &method) {
+    int status = response_.get_status();
     switch (log_type) {
-        case INFO_NEW_CONNECTION:
+        /*case INFO_NEW_CONNECTION:
             this->write_to_logs("New connection [METHOD " + method + "] [URL "
                                 + url
                                 + "] [WORKER PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
                                 std::to_string(this->sock)
                                 + "]", INFO);
+            break;*/
+        case INFO_CONNECTION_FINISHED:
+            if (status % 100 == 4 || status % 100 == 5) {
+                this->write_to_logs("Connection [" + method + "] [URL "
+                                + url
+                                + "] [STATUS " + std::to_string(status) +
+                                "] [WRK PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                                std::to_string(this->sock)
+                                + "] [TIME " +
+                                std::to_string((clock() - start_connection) / (double)CLOCKS_PER_SEC * 1000) + "]", ERROR);
+            } else {
+                this->write_to_logs("Connection [" + method + "] [URL "
+                                + url
+                                + "] [STATUS " + std::to_string(status) +
+                                "] [WRK PID " + std::to_string(getpid()) + "] [CLIENT SOCKET " +
+                                std::to_string(this->sock)
+                                + "] [TIME " +
+                                std::to_string((clock() - start_connection) / (double)CLOCKS_PER_SEC * 1000) + "]", INFO);
+            }
             break;
         case INFO_CONNECTION_WITH_UPSTREAM:
             this->write_to_logs(
@@ -396,7 +416,7 @@ clock_t ClientConnection::get_timeout() {
 
 ClientConnection::connection_stages_t ClientConnection::process_location() {
     std::string url = request_.get_url();
-    this->message_to_log(INFO_NEW_CONNECTION, url, request_.get_method());
+    //this->message_to_log(INFO_NEW_CONNECTION, url, request_.get_method());
     HttpResponse http_response;
     try {
         location_ = this->server_settings->get_location(url);

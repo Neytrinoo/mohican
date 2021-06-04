@@ -30,7 +30,7 @@ def main():
 
     count = 1
     for path in paths:
-        number = int(subprocess.check_output('cat {} | grep "New connection" | wc -l'.format(path), shell=True))
+        number = int(subprocess.check_output('cat {} | grep "Connection" | wc -l'.format(path), shell=True))
 
         names.append('№{}'.format(count))
         values.append(number)

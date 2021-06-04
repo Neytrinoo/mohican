@@ -59,13 +59,13 @@ public:
 
         int daemonize(status_server_action server_action);
         bool bind_listen_sock();
-        int add_work_processes(status_server_action server_action, action_level_t lvl);
-        int fill_pid_file(status_server_action server_action, action_level_t lvl);
+        int add_work_processes();
+        int fill_pid_file();
         int delete_pid_file();
 
     static int process_setup_signals();  // set handlers to signals
         static void sighup_handler(int sig, siginfo_t* info, void* param);  // handler for soft stop
-        static void sigint_handler(int sig);  // handler for hard stop
+        static void sigint_handler(int sig, siginfo_t* info, void* param);  // handler for hard stop
         static void sigpipe_handler(int sig);  // handler for soft reload
         static void sigalrm_handler(int sig);  // handler for hard reload
         static void sigchld_handler(int sig);  // handler for end of soft stop
@@ -73,7 +73,7 @@ public:
     int server_stop(action_level_t level);
 
     int server_reload(action_level_t level);
-        int apply_config(status_server_action server_action, action_level_t level);
+        int apply_config(action_level_t level);
 
 private:
     int count_workflows = 0;
@@ -81,7 +81,6 @@ private:
     pid_t new_master_process = 0;
 
     std::vector<pid_t> workers_pid;
-    std::vector<pid_t> new_workers_pid;
 
     std::vector<location_t> upstream_ban_list;  // бан-лист апстримов
 
@@ -91,14 +90,12 @@ private:
     MohicanLog access_log;
 
     std::vector<MohicanLog*> vector_logs;
-    std::vector<MohicanLog*> new_vector_logs;  // TODO: check why not used, error
 
     class ServerSettings server;
 
     int listen_sock = 0;
 
     MainServerSettings mohican_settings;
-    MainServerSettings new_mohican_settings;
 };
 
 #endif //NGINX_PROJECT_NGINXSERVER_H

@@ -38,6 +38,7 @@ HttpResponse http_handler(const HttpRequest& request, const std::string& root) {
                 std::string content_type = get_content_type(request.get_url());
                 headers[CONTENT_TYPE_HDR] = content_type;
                 headers[CONTENT_LENGTH_HDR] = std::to_string(file_stat.st_size);
+                headers[CONNECTION_HDR] = CLOSE_VL;
                 status = OK_STATUS;
                 message = OK_MSG;
             } catch (WrongFileType&) {

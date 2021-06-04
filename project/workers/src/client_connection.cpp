@@ -270,6 +270,7 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
                 this->message_to_log(ERROR_SEND_RESPONSE);
                 return false;
             }
+            write_result = 0;
             return true;
         }
         is_write_data = true;
@@ -290,13 +291,13 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
 
 bool ClientConnection::send_file() {
     bool is_write_data = false;
-    char c;
+    char c[100];
     int read_code;
     int write_result;
 
-    read_code = read(this->file_fd, &c, sizeof(c));
-    while (read_code > 0 && (write_result = write(this->sock, &c, sizeof(c)) == sizeof(c))) {
-        read_code = read(this->file_fd, &c, sizeof(c));
+    read_code = read(this->file_fd, &c, 100);
+    while (read_code > 0 && (write_result = write(this->sock, &c, read_code) > 0)) {
+        read_code = read(this->file_fd, &c, 100);
         is_write_data = true;
     }
 
@@ -477,7 +478,7 @@ bool ClientConnection::connect_to_upstream() {
     } else {
         this->write_to_logs("connect to upstream do 1.2", INFO);
         struct sockaddr_in serv_addr;
-        memset(&serv_addr, 0 , sizeof(serv_addr));
+        memset(&serv_addr, 0, sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = htons(upstream->get_port());
         this->write_to_logs("connect to upstream do 2", INFO);

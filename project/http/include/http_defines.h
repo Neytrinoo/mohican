@@ -16,12 +16,12 @@
 #define UNSUPPORTED_STATUS 415
 #define UNSUPPORTED_MSG "Unsupported Media Type"
 
-#define CONNECTION_HDR "connection"
-#define CLOSE_VL "close"
-#define CONTENT_TYPE_HDR "content-type"
-#define CONTENT_LENGTH_HDR "content-length"
-#define DATE_HDR "date"
-#define SERVER_HDR "server"
+#define CONNECTION_HDR "Connection"
+#define CLOSE_VL "Close"
+#define CONTENT_TYPE_HDR "Content-Type"
+#define CONTENT_LENGTH_HDR "Content-Length"
+#define DATE_HDR "Date"
+#define SERVER_HDR "Server"
 #define SERVER_VL "mohican"
 
 #define DEFAULT_URL "/index.html"

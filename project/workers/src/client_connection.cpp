@@ -44,7 +44,6 @@ connection_status_t ClientConnection::connection_processing() {
             is_succeeded = get_request();
         } catch (std::exception &e) {
             this->stage = BAD_REQUEST;
-            this->write_to_logs("some exception " + std::string(e.what()), INFO);
         }
         if (is_succeeded) {
             this->stage = this->process_location();
@@ -78,7 +77,6 @@ connection_status_t ClientConnection::connection_processing() {
 
     if (stage == SEND_HEADER_TO_PROXY) {
         if (send_header(request_str_, proxy_sock, request_pos)) {
-            this->write_to_logs("send header to proxy", INFO);
             stage = GET_BODY_OR_NOT_FROM_CLIENT;
         } else if (this->is_timeout()) {
             stage = PROXY_TIMEOUT;
@@ -89,7 +87,6 @@ connection_status_t ClientConnection::connection_processing() {
         this->upstream_buffer.reserve(BUFFER_LENGTH);
         if (this->request_.get_method() == "GET") {
             this->stage = GET_RESPONSE_FROM_PROXY;
-            this->write_to_logs("checkout to get response", INFO);
             return CHECKOUT_PROXY_FOR_READ;
         } else {
             this->stage = GET_BODY_FROM_CLIENT;
@@ -130,7 +127,7 @@ connection_status_t ClientConnection::connection_processing() {
         try {
             is_something = get_proxy_header();
         } catch (std::exception &e) {
-            this->write_to_logs("some exception, 130", INFO);
+            stage = BAD_REQUEST;
         }
         if (is_something) {
             response_str_ = response_.get_string();
@@ -140,8 +137,6 @@ connection_status_t ClientConnection::connection_processing() {
         } else if (this->is_timeout()) {
             this->message_to_log(ERROR_TIMEOUT);
             stage = PROXY_TIMEOUT;
-        } else {
-            this->write_to_logs("not get header", INFO);
         }
     }
 
@@ -153,8 +148,6 @@ connection_status_t ClientConnection::connection_processing() {
         } else if (this->is_timeout()) {
             return CONNECTION_TIMEOUT_ERROR;
         }
-        this->message_to_log(INFO_GET_RESPONSE_FROM_UPSTREAM, this->request_.get_url(), this->request_.get_method());
-        return CHECKOUT_CLIENT_FOR_WRITE;
     }
 
     if (stage == SEND_BODY_TO_CLIENT) {
@@ -211,26 +204,28 @@ bool ClientConnection::get_request() {
     bool is_read_data = false;
     int result_read;
     this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
-    while ((result_read = read(this->sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+    while ((result_read = read(this->sock, &last_char_, sizeof(last_char_))) > 0) {
         this->line_.push_back(last_char_);
         if (this->last_char_ == '\n' && this->line_.length() != 1) {
             this->request_.add_line(line_);
             this->line_.clear();
             this->line_.reserve(LENGTH_LINE_FOR_RESERVE);
+            if (request_.requst_ended()) {
+                return true;
+            }
         }
         is_read_data = true;
     }
-
     if (request_.requst_ended()) {
         return true;
     }
 
-    if (result_read == -1) {
+    if (result_read == -1 && errno != EAGAIN) {
         this->stage = ERROR_STAGE;
         return false;
     }
 
-    if (is_read_data) {
+    if (is_read_data || errno == EAGAIN) {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
@@ -267,14 +262,14 @@ bool ClientConnection::send_header(std::string &str, int socket, int &pos) {
         }
         is_write_data = true;
     }
-    if (write_result == -1) {
+    if (write_result == -1 && errno != EAGAIN) {
         this->stage = ERROR_STAGE;
         //this->write_to_logs("error = " + std::string(strerror(errno)), WARNING);
         this->message_to_log(ERROR_SEND_RESPONSE);
         return false;
     }
 
-    if (is_write_data) {
+    if (is_write_data || errno == EAGAIN) {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
@@ -437,7 +432,6 @@ int ClientConnection::get_client_sock() {
 }
 
 bool ClientConnection::connect_to_upstream() {
-    this->write_to_logs("connect to upstream start", INFO);
     if ((this->proxy_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return false;
     }
@@ -445,14 +439,10 @@ bool ClientConnection::connect_to_upstream() {
     if (setsockopt(this->get_upstream_sock(), SOL_SOCKET, SO_KEEPALIVE, &enable, sizeof(enable)) == -1) {
         return false;
     }
-    this->write_to_logs("connect to upstream do 1", INFO);
     UpstreamSettings upstream;
     upstream = location_->upstreams[0];
     std::string str = upstream.get_upstream_address();
-    this->write_to_logs("connect to upstream do 1.1", INFO);
-    this->write_to_logs("ups: " + str, INFO);
     if (!(upstream.is_ip_address())) {
-        this->write_to_logs("connect to upstream do 1.1.1", INFO);
         struct sockaddr_in *serv_addr;
         struct addrinfo *result = NULL;
         struct addrinfo hints;
@@ -470,37 +460,33 @@ bool ClientConnection::connect_to_upstream() {
             return false;
         }
     } else {
-        this->write_to_logs("connect to upstream do 1.2", INFO);
         struct sockaddr_in serv_addr;
         memset(&serv_addr, 0 , sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = htons(upstream.get_port());
-        this->write_to_logs("connect to upstream do 2", INFO);
         if (inet_pton(AF_INET, upstream.get_upstream_address().c_str(), &serv_addr.sin_addr) <= 0) {
             return false;
         }
-        this->write_to_logs("connect to upstream do 3", INFO);
         if (connect(get_upstream_sock(), (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
             return false;
         }
-        this->write_to_logs("connect to upstream do 4", INFO);
     }
     fcntl(get_upstream_sock(), F_SETFL, fcntl(get_upstream_sock(), F_GETFL, 0) | O_NONBLOCK);
-    this->write_to_logs("connect to upstream do 5", INFO);
     return true;
 }
 
 bool ClientConnection::get_proxy_header() {
     bool is_read_data = false;
     int result_read;
-    this->write_to_logs("we are in get_proxy_header", INFO);
-    while ((result_read = read(proxy_sock, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+    while ((result_read = read(proxy_sock, &last_char_, sizeof(last_char_))) > 0) {
         this->upstream_buffer.push_back(last_char_);
         if (this->last_char_ == '\n' && this->upstream_buffer.length() != 1) {
             this->response_.add_line(this->upstream_buffer);
-            this->write_to_logs(this->upstream_buffer, INFO);
             this->upstream_buffer.clear();
             this->upstream_buffer.reserve(BUFFER_LENGTH);
+            if (response_.response_ended()) {
+                return true;
+            }
         }
         is_read_data = true;
     }
@@ -509,12 +495,12 @@ bool ClientConnection::get_proxy_header() {
         return true;
     }
 
-    if (result_read == -1) {
+    if (result_read == -1 && errno != EAGAIN) {
         this->stage = ERROR_STAGE;
         return false;
     }
 
-    if (is_read_data) {
+    if (is_read_data || errno == EAGAIN) {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
@@ -524,22 +510,18 @@ bool ClientConnection::get_proxy_header() {
 bool ClientConnection::get_body(int socket) {
     bool is_read_data = false;
     int result_read;
-    this->write_to_logs("we are in get_body(!!)", INFO);
-    while (this->get_body_ind < BUFFER_LENGTH &&
-           (result_read = read(socket, &last_char_, sizeof(last_char_))) == sizeof(last_char_)) {
+    while (get_body_ind < body_length && (result_read = read(socket, &last_char_, sizeof(last_char_))) > 0) {
         this->upstream_buffer.push_back(this->last_char_);
         this->get_body_ind++;
         this->buffer_read_count++;
-        this->write_to_logs("get " + std::to_string(this->get_body_ind) + " bite from proxy", INFO);
         is_read_data = true;
     }
-
-    if (result_read == -1) {
+    if (result_read == -1 && errno != EAGAIN) {
         this->stage = ERROR_STAGE;
         return false;
     }
 
-    if (is_read_data) {
+    if (is_read_data || errno == EAGAIN) {
         this->timeout = clock() / CLOCKS_PER_SEC;
     }
 
@@ -558,10 +540,9 @@ bool ClientConnection::is_timeout() {
 bool ClientConnection::send_body(int socket) {
     bool is_write_data = false;
     int write_result;
-    while ((write_result = write(socket, this->upstream_buffer.c_str() + this->send_body_ind, 1)) ==
+    while (send_body_ind < body_length && (write_result = write(socket, this->upstream_buffer.c_str() + this->send_body_ind, 1)) ==
            1) {
         this->send_body_ind++;
-        this->write_to_logs("send " + std::to_string(this->send_body_ind) + " bite to proxy", INFO);
         if (this->send_body_ind == this->get_body_ind) {
             break;
         }

@@ -77,7 +77,6 @@ void WorkerProcess::run() {
                         ev.events = EPOLLOUT;
                     }
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_upstream_sock(), &ev);
-                    this->write_to_logs("checkout to proxy", INFO);
                 } else if (connection_status == CHECKOUT_CLIENT_FOR_READ || connection_status == CHECKOUT_CLIENT_FOR_WRITE) {
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_connection->get_upstream_sock(), &events[i]);
 
@@ -88,7 +87,6 @@ void WorkerProcess::run() {
                         ev.events = EPOLLOUT;
                     }
                     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_connection->get_client_sock(), &ev);
-                    this->write_to_logs("checkout to client", INFO);
                 }
             }
         }

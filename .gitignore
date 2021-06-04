@@ -4,4 +4,3 @@
 pid_file.txt
 .idea/
 cmake-build-debug/
-static/*

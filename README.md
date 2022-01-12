@@ -86,3 +86,15 @@ $ git clone https://github.com/Neytrinoo/mohican
 ```
 $ sudo ./mohican.sh build
 ```
+
+## Developers
+  
+- [@And_Dayk](https://github.com/zdesbilaksenia) - Дьяконов Андрей [Team Lead, Raising and managing the server, load balancing]
+  
+- [@kirill555101](https://github.com/kirill555101) - Каташинский Кирилл [Config parser]
+  
+- [@Neytrino0](https://github.com/Neytrinoo) - Ильин Дмитрий [Asynchronous request processing development, proxying a request]
+  
+- [@lostl1ght](https://github.com/lostl1ght) - Буланный Константин [HTTP parser, proxying a request]
+  <br>
+<br>

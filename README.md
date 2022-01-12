@@ -89,12 +89,12 @@ $ sudo ./mohican.sh build
 
 ## Developers
   
-- [@And_Dayk](https://github.com/zdesbilaksenia) - Дьяконов Андрей [Team Lead, Raising and managing the server, load balancing]
+- [@And_Dayk](https://github.com/zdesbilaksenia) - Дьяконов Андрей [Team Lead, Raising and managing the server, Load balancing]
   
-- [@kirill555101](https://github.com/kirill555101) - Каташинский Кирилл [Config parser]
+- [@kirill555101](https://github.com/kirill555101) - Каташинский Кирилл [Stop command handler, Searching by block locations]
   
-- [@Neytrino0](https://github.com/Neytrinoo) - Ильин Дмитрий [Asynchronous request processing development, proxying a request]
+- [@Neytrino0](https://github.com/Neytrinoo) - Ильин Дмитрий [Asynchronous request processing development, Config parser]
   
-- [@lostl1ght](https://github.com/lostl1ght) - Буланный Константин [HTTP parser, proxying a request]
+- [@lostl1ght](https://github.com/lostl1ght) - Буланный Константин [HTTP parser, Proxying a request]
   <br>
 <br>
